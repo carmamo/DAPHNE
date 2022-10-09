@@ -1,0 +1,10 @@
+12:02:31 **** Incremental Build of configuration Debug for project F446RE_RTOS_BLINK_RTC ****
+make -j12 all 
+arm-none-eabi-size   F446RE_RTOS_BLINK_RTC.elf 
+   text	   data	    bss	    dec	    hex	filename
+  29332	    124	  20780	  50236	   c43c	F446RE_RTOS_BLINK_RTC.elf
+Finished building: default.size.stdout
+ 
+
+12:02:32 Build Finished. 0 errors, 0 warnings. (took 183ms)
+

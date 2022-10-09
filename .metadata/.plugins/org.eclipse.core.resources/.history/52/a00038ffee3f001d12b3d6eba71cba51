@@ -1,0 +1,69 @@
+/**
+ ******************************************************************************
+ * @file    AIC3254.h
+ * @author  Carlos Martinez Mora (carmamo.95@gmail.com)
+ * @date	 Sep 29, 2022
+ * @brief   short description of the file
+ *			...
+ *
+ ******************************************************************************
+ * @attention
+ *
+ *
+ *
+ ******************************************************************************
+ */
+#ifndef INC_AIC3254_H_
+#define INC_AIC3254_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "stm32f4xx_hal.h"
+
+/*
+ * DEFINES
+ */
+
+#define AIC3254_I2C_ADDR		(0x30 << 1)
+
+/*
+ * REGISTERS
+ */
+
+#define PAGE_0		0x00
+
+/*
+ * CODEC STRUCT
+ */
+
+typedef struct {
+	/* I2C handle */
+	I2C_HandleTypeDef *i2cHandle;
+
+
+
+} AIC3254;
+
+/*
+ * INITIALIZE
+ */
+
+uint8_t AIC3254_Init(AIC3254 *dev, I2C_HandleTypeDef *i2cHandle);
+
+/*
+ * FILTER SETUP
+ */
+
+/*
+ * LOW-LEVEL FUNCTIONS
+ */
+
+HAL_StatusTypeDef AIC3254_SendCommand(AIC3254 *dev, uint8_t Register, uint8_t *Data);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* INC_AIC3254_H_ */

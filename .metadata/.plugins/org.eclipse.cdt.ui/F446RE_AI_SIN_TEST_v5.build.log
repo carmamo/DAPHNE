@@ -1,0 +1,17 @@
+12:05:22 **** Incremental Build of configuration Debug for project F446RE_AI_SIN_TEST_v5 ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F446xx -c -I../Core/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I../Drivers/CMSIS/Include -I../X-CUBE-AI/App -I../Middlewares/ST/AI/Inc -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "F446RE_AI_SIN_TEST_v5.elf" @"objects.list"  -l:NetworkRuntime520_CM4_GCC.a -mcpu=cortex-m4 -T"/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_AI_SIN_TEST_v5/STM32F446RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="F446RE_AI_SIN_TEST_v5.map" -Wl,--gc-sections -static -L../Middlewares/ST/AI/Lib --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: F446RE_AI_SIN_TEST_v5.elf
+ 
+arm-none-eabi-size   F446RE_AI_SIN_TEST_v5.elf 
+arm-none-eabi-objdump -h -S  F446RE_AI_SIN_TEST_v5.elf  > "F446RE_AI_SIN_TEST_v5.list"
+   text	   data	    bss	    dec	    hex	filename
+  33128	   1980	   2884	  37992	   9468	F446RE_AI_SIN_TEST_v5.elf
+Finished building: default.size.stdout
+ 
+Finished building: F446RE_AI_SIN_TEST_v5.list
+ 
+
+12:05:22 Build Finished. 0 errors, 0 warnings. (took 754ms)
+

@@ -1,0 +1,20 @@
+20:27:08 **** Incremental Build of configuration Debug for project S1-MARTINEZMORA-CARLOS ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m0 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F070xB -c -I../Core/Inc -I../Drivers/STM32F0xx_HAL_Driver/Inc -I../Drivers/STM32F0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F0xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:477:12: warning: 'debounce' defined but not used [-Wunused-function]
+  477 | static int debounce(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin) {
+      |            ^~~~~~~~
+arm-none-eabi-gcc -o "S1-MARTINEZMORA-CARLOS.elf" @"objects.list"   -mcpu=cortex-m0 -T"/home/carlos/STM32CubeIDE/workspace_1.9.0/S1-MARTINEZMORA-CARLOS/STM32F070RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="S1-MARTINEZMORA-CARLOS.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: S1-MARTINEZMORA-CARLOS.elf
+ 
+arm-none-eabi-size   S1-MARTINEZMORA-CARLOS.elf 
+arm-none-eabi-objdump -h -S  S1-MARTINEZMORA-CARLOS.elf  > "S1-MARTINEZMORA-CARLOS.list"
+   text	   data	    bss	    dec	    hex	filename
+  13728	     24	   1864	  15616	   3d00	S1-MARTINEZMORA-CARLOS.elf
+Finished building: default.size.stdout
+ 
+Finished building: S1-MARTINEZMORA-CARLOS.list
+ 
+
+20:27:08 Build Finished. 0 errors, 1 warnings. (took 544ms)
+

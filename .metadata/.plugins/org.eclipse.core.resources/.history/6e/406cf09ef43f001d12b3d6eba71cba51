@@ -1,0 +1,111 @@
+/**
+ ******************************************************************************
+ * @file    AIC3254.c
+ * @author  Carlos Martinez Mora (carmamo.95@gmail.com)
+ * @date	 Sep 29, 2022
+ * @brief   short description of the file
+ *			...
+ *
+ ******************************************************************************
+ * @attention
+ *
+ *
+ *
+ ******************************************************************************
+ */
+
+#include "AIC3254.h"
+
+/*
+ * INIZIALIZE
+ */
+
+uint8_t AIC3254_Init(AIC3254 *dev, I2C_HandleTypeDef *i2cHandle) {
+
+	/* Init Struct */
+	dev->i2cHandle = i2cHandle;
+
+	HAL_StatusTypeDef status;
+
+	/*
+	 * Set Stereo ADC with 48ksps Sample Rate and High Performance
+	 */
+
+	/* Initialize to Page 0 */
+
+	AIC3254_SendCommand(dev, PAGE_SELECT, PAGE_0);
+
+	/* S/W Reset to initialize all registers */
+
+	AIC3254_SendCommand(dev, SW_RESET, 0x01);
+
+	/* Power up NADC divider with value 1 */
+
+	AIC3254_SendCommand(dev, CSR_8, 0x81);
+
+	/* Power up MADC divider with value 2 */
+
+	AIC3254_SendCommand(dev, CSR_9, 0x82);
+
+	/* Program OSR for ADC to 128 */
+
+	AIC3254_SendCommand(dev, AOSR, 0x80);
+
+	/* Select ADC PRB_R1 */
+
+	AIC3254_SendCommand(dev, PBCR, 0x01);
+
+	/* Select Page 1 */
+
+	AIC3254_SendCommand(dev, PAGE_SELECT, PAGE_1);
+
+	/* Disable Internal Crude AVdd in presence of external AVdd supply or before
+	 * powering up internal AVdd LDO
+	 */
+
+
+
+	/* Enable Master Analog Power Control */
+
+	/* Set the input common mode to 0.9V */
+
+	/* Select ADC PTM_R4 */
+
+	/* Set MicPGA startup delay to 3.1ms */
+
+	/* Set the REF charging time to 40ms */
+
+	/* Route IN1L to LEFT_P with 20K input impedance */
+
+	/* Route Common Mode to LEFT_M with impedance of 20K */
+
+	/* Route IN1R to Right_P with 20K input impedance */
+
+	/* Route Common Mode to Right_M with impedance of 20K */
+
+	/* Unmute Left MICPGA, Gain selection of 6dB to make channel gain 0dB
+	 * Register of 6dB with input impedance of 20K -> Channel Gain of 0dB
+	 */
+
+	/* Unmute Right MICPGA, Gain selection of 6dB to make channel gain 0dB
+	 * Register of 6dB with input impedance of 20K -> Channel Gain of 0dB
+	 */
+
+	/* Select Page 0 */
+
+	/* Power up Left and Right ADC Channels */
+
+	/* Unmute Left and Right ADC Digital Volume Control */
+
+}
+
+
+/*
+ * LOW-LEVEL FUNCTIONS
+ */
+
+HAL_StatusTypeDef AIC3254_SendCommand(AIC3254 *dev, uint8_t Register, uint8_t Data) {
+
+	return HAL_I2C_Mem_Write(dev->i2cHandle, AIC3254_I2C_ADDR , Register, I2C_MEMADD_SIZE_8BIT, &Data, 1, HAL_MAX_DELAY);
+
+}

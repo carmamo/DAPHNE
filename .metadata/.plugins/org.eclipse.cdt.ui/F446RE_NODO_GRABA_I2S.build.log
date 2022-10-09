@@ -1,0 +1,10 @@
+13:58:14 **** Incremental Build of configuration Debug for project F446RE_NODO_GRABA_I2S ****
+make -j12 all 
+arm-none-eabi-size   F446RE_NODO_GRABA_I2S.elf 
+   text	   data	    bss	    dec	    hex	filename
+  40540	    124	   4844	  45508	   b1c4	F446RE_NODO_GRABA_I2S.elf
+Finished building: default.size.stdout
+ 
+
+13:58:14 Build Finished. 0 errors, 0 warnings. (took 185ms)
+

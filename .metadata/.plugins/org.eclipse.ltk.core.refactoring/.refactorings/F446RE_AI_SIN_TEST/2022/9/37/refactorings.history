@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Move &apos;Middlewares&apos; to &apos;F446RE_AI_SIN_TEST&apos;" description="Move &apos;Middlewares&apos; to &apos;F446RE_AI_SIN_TEST&apos;" destination="/F446RE_AI_SIN_TEST" element1="/F446RE_AI_SIN_TEST_v5/Middlewares" flags="7" id="org.eclipse.ltk.core.refactoring.move.resources" resources="1" stamp="1662458531335" updateReferences="true"/>
+</session>

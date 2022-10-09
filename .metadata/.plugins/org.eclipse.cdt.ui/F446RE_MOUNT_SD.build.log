@@ -1,0 +1,10 @@
+12:25:57 **** Incremental Build of configuration Debug for project F446RE_MOUNT_SD ****
+make -j12 all 
+arm-none-eabi-size   F446RE_MOUNT_SD.elf 
+   text	   data	    bss	    dec	    hex	filename
+  25904	     20	   6164	  32088	   7d58	F446RE_MOUNT_SD.elf
+Finished building: default.size.stdout
+ 
+
+12:25:57 Build Finished. 0 errors, 0 warnings. (took 188ms)
+

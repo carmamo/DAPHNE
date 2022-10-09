@@ -1,0 +1,10 @@
+09:27:58 **** Incremental Build of configuration Debug for project F446RE_BLINK_LED ****
+make -j12 all 
+arm-none-eabi-size   F446RE_BLINK_LED.elf 
+   text	   data	    bss	    dec	    hex	filename
+  13856	     20	   1804	  15680	   3d40	F446RE_BLINK_LED.elf
+Finished building: default.size.stdout
+ 
+
+09:27:58 Build Finished. 0 errors, 0 warnings. (took 299ms)
+

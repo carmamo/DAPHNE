@@ -1,0 +1,45 @@
+/**
+  ******************************************************************************
+  * @file    AIC3254.h
+  * @author  Carlos Martinez Mora (carmamo.95@gmail.com)
+  * @date	 Sep 29, 2022
+  * @brief   short description of the file
+  *			 ...
+  *
+  ******************************************************************************
+  * @attention
+  *
+  *
+  *
+  ******************************************************************************
+  */
+#ifndef INC_AIC3254_H_
+#define INC_AIC3254_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
+#include "stm32f4xx_hal.h"
+
+
+/*
+ * DEFINES
+ */
+
+
+/*
+ * R
+ */
+
+/*
+ *
+ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* INC_AIC3254_H_ */

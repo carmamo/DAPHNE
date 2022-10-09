@@ -1,0 +1,10 @@
+14:12:51 **** Incremental Build of configuration Debug for project PWR_CurrentConsumption ****
+make -j12 all 
+arm-none-eabi-size   STM32F4xx-Nucleo.elf 
+   text	   data	    bss	    dec	    hex	filename
+   5076	     32	   1604	   6712	   1a38	STM32F4xx-Nucleo.elf
+Finished building: default.size.stdout
+ 
+
+14:12:51 Build Finished. 0 errors, 0 warnings. (took 236ms)
+
