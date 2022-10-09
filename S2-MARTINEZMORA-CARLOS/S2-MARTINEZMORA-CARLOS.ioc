@@ -1,7 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
 FREERTOS.FootprintOK=true
 FREERTOS.IPParameters=Tasks01,configUSE_NEWLIB_REENTRANT,FootprintOK
-FREERTOS.Tasks01=LED,8,128,parpadeo,Default,NULL,Dynamic,NULL,NULL;BUTTON,24,128,button_check,Default,NULL,Dynamic,NULL,NULL
+FREERTOS.Tasks01=LED,8,128,blink,Default,NULL,Dynamic,NULL,NULL;BUTTON,24,128,check_status,Default,NULL,Dynamic,NULL,NULL
 FREERTOS.configUSE_NEWLIB_REENTRANT=1
 File.Version=6
 GPIO.groupedBy=Group By Peripherals
@@ -148,7 +148,9 @@ SH.GPXTI13.ConfNb=1
 SH.S_TIM1_CH1.0=TIM1_CH1,PWM Generation1 CH1
 SH.S_TIM1_CH1.ConfNb=1
 TIM1.Channel-PWM\ Generation1\ CH1=TIM_CHANNEL_1
-TIM1.IPParameters=Channel-PWM Generation1 CH1
+TIM1.IPParameters=Channel-PWM Generation1 CH1,Prescaler,Period
+TIM1.Period=2000
+TIM1.Prescaler=480
 USART2.IPParameters=VirtualMode-Asynchronous
 USART2.VirtualMode-Asynchronous=VM_ASYNC
 VP_FREERTOS_VS_CMSIS_V2.Mode=CMSIS_V2

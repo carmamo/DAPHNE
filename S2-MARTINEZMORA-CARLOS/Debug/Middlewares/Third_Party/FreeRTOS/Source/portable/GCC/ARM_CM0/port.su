@@ -10,5 +10,5 @@
 ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c:284:10:ulSetInterruptMaskFromISR	0	static,ignoring_inline_asm
 ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c:302:6:vClearInterruptMaskFromISR	0	static,ignoring_inline_asm
 ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c:319:6:PendSV_Handler	0	static,ignoring_inline_asm
-../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c:368:6:xPortSysTickHandler	16	static
+../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c:368:6:SysTick_Handler	16	static
 ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/port.c:541:6:prvSetupTimerInterrupt	8	static

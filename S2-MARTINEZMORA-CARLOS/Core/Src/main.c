@@ -6,6 +6,24 @@
   ******************************************************************************
   * @attention
   *
+  *
+  *                                       STM32F070RB
+  *                                    -----------------
+  *                               /|\ |                 |
+  *                                |  |                 |
+  *                                ---|RST              |
+  *                                   |                 |
+  *                                   |                 |
+  *                                   |                 |
+  *                  +-|10k|---|LED| -|PA8              |
+  *                  |                |                 |
+  *                 \|/
+  *                 GND
+  *
+  * Octubre 2022
+  * C. Martinez <carmarmor5@alum.us.es>
+  *
+  *
   * Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.
   *
@@ -22,6 +40,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdbool.h>
 
 /* USER CODE END Includes */
 
@@ -59,6 +78,16 @@ const osThreadAttr_t BUTTON_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
+enum patrones {
+	patron_1, patron_2, patron_3
+};
+
+enum patrones patron_activo;
+static bool primera_vez = true;
+static int Duty_Cycle = 0;
+static int parpadeo = 0;
+static bool up = true;
+static bool PWM_On = true;
 
 /* USER CODE END PV */
 
@@ -67,10 +96,12 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM1_Init(void);
-void parpadeo(void *argument);
-void button_check(void *argument);
+void blink(void *argument);
+void check_status(void *argument);
 
 /* USER CODE BEGIN PFP */
+static int debounce(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin);
+static void PA8_Init();
 
 /* USER CODE END PFP */
 
@@ -111,6 +142,7 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -134,10 +166,10 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of LED */
-  LEDHandle = osThreadNew(parpadeo, NULL, &LED_attributes);
+  LEDHandle = osThreadNew(blink, NULL, &LED_attributes);
 
   /* creation of BUTTON */
-  BUTTONHandle = osThreadNew(button_check, NULL, &BUTTON_attributes);
+  BUTTONHandle = osThreadNew(check_status, NULL, &BUTTON_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -221,9 +253,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 480;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 2000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -344,42 +376,183 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/*Configure GPIO pins : LD2_Pin PA8 */
+static void PA8_Init() {
+	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+
+	GPIO_InitStruct.Pin = LD2_Pin | GPIO_PIN_8;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
+
+static int debounce(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin) {
+	static uint16_t rebote = 0;
+
+	rebote = (rebote << 1) | HAL_GPIO_ReadPin(GPIOx, GPIO_Pin) | 0xfe00;
+	return (rebote <= 0xfff0);
+}
+
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_parpadeo */
+/* USER CODE BEGIN Header_blink */
 /**
   * @brief  Function implementing the LED thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_parpadeo */
-void parpadeo(void *argument)
+/* USER CODE END Header_blink */
+void blink(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	patron_activo = patron_1;
+	static int i = 0;
+	static int j = 0;
+
+	/* Infinite loop */
+	for(;;)
+	{
+		if (patron_activo != patron_2 && PWM_On) {
+			HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
+			PA8_Init();
+			PWM_On = false;
+		}
+		switch (patron_activo) {
+		case patron_1: {
+			if (primera_vez) {
+				primera_vez = false;
+
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+				osDelay(250);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);\
+				osDelay(250);
+			}
+
+			if (i < 6 && j == 0) {
+				i++;
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+				osDelay(250);
+			} else {
+				i = 0;
+			}
+			if (j < 4 && i == 0) {
+				j++;
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+				osDelay(500);
+			} else {
+				j = 0;
+			}
+
+			break;
+
+		}
+		case patron_2: {
+			if (primera_vez) {
+				primera_vez = false;
+
+				for (int i = 0; i < 4; i++) {
+					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+					osDelay(250);
+				}
+				MX_TIM1_Init();
+				HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+				PWM_On = true;
+			}
+
+			if (Duty_Cycle < 2000 && up == true) {
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Duty_Cycle);
+				Duty_Cycle += 10;
+				osDelay(3);
+			} else {
+				up = false;
+			}
+
+			if (Duty_Cycle > 0 && up == false) {
+				__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, Duty_Cycle);
+				Duty_Cycle -= 10;
+				osDelay(3);
+			} else {
+				up = true;
+			}
+
+			break;
+
+		}
+		case patron_3: {
+			if (primera_vez) {
+				primera_vez = false;
+
+				for (int i = 0; i < 6; i++) {
+					HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+					osDelay(250);
+				}
+			}
+
+			if (parpadeo < 250 && up == true) {
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+				parpadeo += 10;
+				osDelay(parpadeo);
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+				osDelay(parpadeo);
+			} else {
+				up = false;
+			}
+
+			if (parpadeo > 0 && up == false) {
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+				parpadeo -= 10;
+				osDelay(parpadeo);
+				HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8);
+				osDelay(parpadeo);
+			} else {
+				up = true;
+			}
+
+			break;
+
+		}
+		default: {
+
+			break;
+
+		}
+		}
+		osDelay(1);
+	}
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_button_check */
+/* USER CODE BEGIN Header_check_status */
 /**
 * @brief Function implementing the BUTTON thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_button_check */
-void button_check(void *argument)
+/* USER CODE END Header_check_status */
+void check_status(void *argument)
 {
-  /* USER CODE BEGIN button_check */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END button_check */
+  /* USER CODE BEGIN check_status */
+	/* Infinite loop */
+	for(;;)
+	{
+		if(debounce(GPIOC, GPIO_PIN_13))
+		{
+			while(debounce(GPIOC, GPIO_PIN_13));
+			if (patron_activo == patron_3)
+			{
+				patron_activo = patron_1;
+			}
+			else
+			{
+				patron_activo = (patron_activo + 1);
+			}
+
+			primera_vez = true;
+		}
+		osDelay(20);
+	}
+  /* USER CODE END check_status */
 }
 
 /**
