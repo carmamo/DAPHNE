@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;STM32_LED_EX1&apos;" deleteContents="true" description="Delete resource &apos;STM32_LED_EX1&apos;" element1="/STM32_LED_EX1" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1651793003159"/>&#x0A;<refactoring comment="Delete resource &apos;PWR_CurrentConsumption&apos;" deleteContents="true" description="Delete resource &apos;PWR_CurrentConsumption&apos;" element1="/PWR_CurrentConsumption" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1651793058001"/>
-</session>
