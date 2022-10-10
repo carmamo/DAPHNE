@@ -1,8 +1,9 @@
-../Core/Src/main.c:81:5:main	568	static
-../Core/Src/main.c:150:6:SystemClock_Config	88	static
-../Core/Src/main.c:198:13:MX_CRC_Init	8	static
-../Core/Src/main.c:224:13:MX_SDIO_SD_Init	4	static
-../Core/Src/main.c:252:13:MX_USART2_UART_Init	8	static
-../Core/Src/main.c:283:13:MX_DMA_Init	16	static
-../Core/Src/main.c:304:13:MX_GPIO_Init	48	static
-../Core/Src/main.c:331:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:98:5:main	4216	static
+../Core/Src/main.c:196:6:SystemClock_Config	88	static
+../Core/Src/main.c:244:13:MX_CRC_Init	8	static
+../Core/Src/main.c:270:13:MX_SDIO_SD_Init	4	static
+../Core/Src/main.c:298:13:MX_USART2_UART_Init	8	static
+../Core/Src/main.c:329:13:MX_DMA_Init	16	static
+../Core/Src/main.c:350:13:MX_GPIO_Init	48	static
+../Core/Src/main.c:370:13:fwrite_wav_header	32	static
+../Core/Src/main.c:400:6:Error_Handler	4	static,ignoring_inline_asm

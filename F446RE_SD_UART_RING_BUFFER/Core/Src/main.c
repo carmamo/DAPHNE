@@ -28,7 +28,21 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef struct _WaveHeader{
+	char riff[4];
+	uint32_t size;
+	char wave[4];
+	char fmt[4];
+	uint32_t fmt_size;
+	uint16_t format; //1:PCM
+	uint16_t channels; // channels
+	uint32_t sampleRate;  // sample rate
+	uint32_t rbc;//sampleRate*bitsPerSample*channels/8
+	uint16_t bc; //bitsPerSample*channels/8
+	uint16_t bitsPerSample; //bitsPerSample
+	char data[4];
+	uint32_t data_size;
+} WAVE_HEADER;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -54,8 +68,10 @@ char buffer[100];
 int indx = 0;
 uint16_t count;
 char filename[256];
+BYTE work[_MAX_SS];
 FRESULT res;
 HAL_StatusTypeDef status;
+WAVE_HEADER wave_header;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,6 +82,7 @@ static void MX_SDIO_SD_Init(void);
 static void MX_DMA_Init(void);
 static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
+WAVE_HEADER fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels);
 
 /* USER CODE END PFP */
 
@@ -80,67 +97,96 @@ static void MX_CRC_Init(void);
   */
 int main(void)
 {
-	/* USER CODE BEGIN 1 */
+  /* USER CODE BEGIN 1 */
 	FIL fil;
 
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_USART2_UART_Init();
-	MX_SDIO_SD_Init();
-	MX_DMA_Init();
-	MX_FATFS_Init();
-	MX_CRC_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_USART2_UART_Init();
+  MX_SDIO_SD_Init();
+  MX_DMA_Init();
+  MX_FATFS_Init();
+  MX_CRC_Init();
+  /* USER CODE BEGIN 2 */
+//  do
+//  {
+//	  status = HAL_SD_InitCard(&hsd);
+//  }
+//  while( status != HAL_OK);
+	  //	res = FR_EXIST;
+	  //	while( res != FR_OK) res = f_mount(&SDFatFS, SDPath, 1);
+	  //	while(res != FR_OK)  res = Format_SD();
+	  //	sprintf(filename, "%sr_%05d.wav", SDPath, count++);
+	  //	while(res != FR_EXIST) res = f_open(&fil, filename, FA_CREATE_ALWAYS|FA_WRITE);
+	  //	while( Create_File("FILE2.TXT") != FR_OK);
+	  //	Unmount_SD("/");
 
-//	while( status != HAL_OK) status = HAL_SD_InitCard(&hsd);
-	res = FR_EXIST;
-	while( res != FR_OK) res = f_mount(&SDFatFS, SDPath, 0);
-//	while(res != FR_OK)  res = Format_SD();
-	sprintf(filename, "%sr_%05d.wav", SDPath, count++);
-	while(res != FR_EXIST) res = f_open(&fil, filename, FA_CREATE_ALWAYS|FA_WRITE);
-	while( Create_File("FILE2.TXT") != FR_OK);
-	Unmount_SD("/");
+  Mount_SD("/");
+//  do
+//  {
+//	  res = f_mkfs("", 0, 0, work, sizeof(work));
+//  }
+//  while( res != FR_OK);
+  do
+  {
+  res = Format_SD();
+  }
+  while (res != FR_OK);
+  do
+  {
+	  res = f_mount(&SDFatFS, SDPath, 1);
+  }
+  while( res != FR_OK);
 
-	/* USER CODE END 2 */
+  Create_File("FILE1.TXT");
+//  Create_File("FILE2.TXT");
+  Unmount_SD("/");
 
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
+
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
 	while (1)
 	{
 		Mount_SD("/");
 		sprintf(buffer, "Hello ---> %d\n", indx);
-		Update_File(filename, buffer);
+		Update_File("FILE1.TXT", buffer);
 		sprintf(buffer, "world ---> %d\n", indx);
-		if(Update_File("FILE2.TXT", buffer) != FR_OK)  HAL_SD_InitCard(&hsd);
+//		sprintf(buffer, &fwrite_wav_header(&fil, 48000, 16, 2));
+		wave_header = fwrite_wav_header(&fil, 48000, 16, 2);
+		Update_File("FILE1.TXT", (char*)&wave_header);
+//		if(Update_File("FILE2.TXT", buffer) != FR_OK)  HAL_SD_InitCard(&hsd);
 		Unmount_SD("/");
 
 		indx++;
 
 		HAL_Delay(2000);
 
-		/* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-		/* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 	}
-	/* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
@@ -155,7 +201,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -166,9 +212,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 50;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 5;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -181,10 +227,10 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -237,7 +283,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd.Init.ClockDiv = 0;
+  hsd.Init.ClockDiv = 4;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
@@ -321,6 +367,29 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+WAVE_HEADER fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels) {
+	UINT bw;
+
+	wave_header.riff[0] = 'R';wave_header.riff[1] = 'I';
+	wave_header.riff[2] = 'F';wave_header.riff[3] = 'F';
+	wave_header.size = (uint32_t)0;
+	wave_header.wave[0] = 'W';wave_header.wave[1] = 'A';
+	wave_header.wave[2] = 'V';wave_header.wave[3] = 'E';
+	wave_header.fmt[0] = 'f';wave_header.fmt[1] = 'm';
+	wave_header.fmt[2] = 't';wave_header.fmt[3] = ' ';
+	wave_header.fmt_size = 16;
+	wave_header.format = 1; // PCM
+	wave_header.channels = channels; // channels
+	wave_header.sampleRate=sampleRate;  // sample rate
+	wave_header.rbc = sampleRate*bitsPerSample*channels/8;
+	wave_header.bc =  bitsPerSample*channels/8;
+	wave_header.bitsPerSample = bitsPerSample; //bitsPerSample
+	wave_header.data[0] = 'd'; wave_header.data[1] = 'a';
+	wave_header.data[2] = 't'; wave_header.data[3] = 'a';
+	wave_header.data_size = 0;
+
+	return wave_header;
+}
 
 /* USER CODE END 4 */
 

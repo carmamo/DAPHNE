@@ -650,9 +650,9 @@ static void MX_SDIO_SD_Init(void)
  80006b2:	4b05      	ldr	r3, [pc, #20]	; (80006c8 <MX_SDIO_SD_Init+0x38>)
  80006b4:	2200      	movs	r2, #0
  80006b6:	615a      	str	r2, [r3, #20]
-  hsd.Init.ClockDiv = 6;
+  hsd.Init.ClockDiv = 0;
  80006b8:	4b03      	ldr	r3, [pc, #12]	; (80006c8 <MX_SDIO_SD_Init+0x38>)
- 80006ba:	2206      	movs	r2, #6
+ 80006ba:	2200      	movs	r2, #0
  80006bc:	619a      	str	r2, [r3, #24]
   /* USER CODE BEGIN SDIO_Init 2 */
 

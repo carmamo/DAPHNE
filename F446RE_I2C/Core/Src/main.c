@@ -40,7 +40,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
- I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart2;
 
@@ -99,8 +99,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
-  HAL_I2C_Master_Transmit(&hi2c1, RTC_ADDR, ini_time, 4, 100);
-//  HAL_I2C_Master_Seq_Transmit_DMA(&hi2c1, RTC_ADDR, buf, 4, I2C_LAST_FRAME);
+  /* USER CODE BEGIN 2 */
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
