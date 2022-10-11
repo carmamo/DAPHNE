@@ -132,7 +132,6 @@ int main(void)
   FRESULT res;
   char filename[256];
   FIL fil;
-//  BYTE work[_MAX_SS];
 
 
   do
@@ -146,13 +145,6 @@ int main(void)
 	  res = Format_SD();
   }
   while (res != FR_OK);
-
-
-//  do
-//  {
-//	  res = f_mkfs("", 0, 0, work, sizeof(work));
-//  }
-//  while( res != FR_OK);
 
   uint16_t count;
 

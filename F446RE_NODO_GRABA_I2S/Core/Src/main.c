@@ -74,6 +74,8 @@ typedef struct _WaveHeader{
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CRC_HandleTypeDef hcrc;
+
 I2C_HandleTypeDef hi2c1;
 
 I2S_HandleTypeDef hi2s2;
@@ -100,11 +102,13 @@ static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2S2_Init(void);
 static void MX_SDIO_SD_Init(void);
+static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
 void convertEndian(char* sd_path, char *file_in, char *file_out);
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s);
 FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels);
 void startRecord(char *filename);
+FRESULT Format_SD (void);
 
 /* USER CODE END PFP */
 
@@ -148,6 +152,7 @@ int main(void)
   MX_I2S2_Init();
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
   /* Initialize CODEC */
@@ -158,13 +163,27 @@ int main(void)
   HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_SET);
   AIC3254_Init(&codec, &hi2c1);
 
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   FRESULT res;
   char filename[256];
-  res = f_mount(&SDFatFS, SDPath, 0);
+
+  do
+  {
+	  res = f_mount(&SDFatFS, SDPath, 1);
+  }
+  while( res != FR_OK);
+
+  do
+  {
+	  res = Format_SD();
+  }
+  while (res != FR_OK);
+
 
   uint16_t count;
   while (1)
@@ -238,6 +257,32 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
+
 }
 
 /**
@@ -328,7 +373,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
+  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE;
   hsd.Init.ClockDiv = 0;
   /* USER CODE BEGIN SDIO_Init 2 */
 
@@ -388,11 +433,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(CODEC_Reset_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  /*Configure GPIO pin : PB14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA9 PA10 */
   GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
@@ -477,8 +522,8 @@ FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample,
 	wave_header.format = 1; // PCM
 	wave_header.channels = channels; // channels
 	wave_header.sampleRate=sampleRate;  // sample rate
-	wave_header.rbc = sampleRate*bitsPerSample*2/8;
-	wave_header.bc =  bitsPerSample*2/8;
+	wave_header.rbc = sampleRate*bitsPerSample*channels/8;
+	wave_header.bc =  bitsPerSample*channels/8;
 	wave_header.bitsPerSample = bitsPerSample; //bitsPerSample
 	wave_header.data[0] = 'd'; wave_header.data[1] = 'a';
 	wave_header.data[2] = 't'; wave_header.data[3] = 'a';
@@ -495,8 +540,12 @@ void startRecord(char *filename) {
 	FRESULT res;
 
 	writeBytes = DMA_TxRx_SIZE*2;
-	while(res != FR_EXIST) res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
-	res = fwrite_wav_header(&fp, 16000, 32, 2);
+	do
+	{
+		res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
+	}
+	while(res != FR_OK);
+	res = fwrite_wav_header(&fp, 48000, 16, 2);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
 	audio_state = STATE_RECORDING;
@@ -531,6 +580,39 @@ void startRecord(char *filename) {
 	f_close(&fp);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
 	audio_state = STATE_STOP;
+}
+
+FRESULT Format_SD (void)
+{
+    DIR dir;
+    static FILINFO fno;
+    static FRESULT fresult;
+
+    char *path = malloc(20*sizeof (char));
+    sprintf (path, "%s","/");
+
+    fresult = f_opendir(&dir, path);                       /* Open the directory */
+    if (fresult == FR_OK)
+    {
+        for (;;)
+        {
+            fresult = f_readdir(&dir, &fno);                   /* Read a directory item */
+            if (fresult != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+            if (fno.fattrib & AM_DIR)     /* It is a directory */
+            {
+            	if (!(strcmp ("SYSTEM~1", fno.fname))) continue;
+            	fresult = f_unlink(fno.fname);
+            	if (fresult == FR_DENIED) continue;
+            }
+            else
+            {   /* It is a file. */
+               fresult = f_unlink(fno.fname);
+            }
+        }
+        f_closedir(&dir);
+    }
+    free(path);
+    return fresult;
 }
 /* USER CODE END 4 */
 
