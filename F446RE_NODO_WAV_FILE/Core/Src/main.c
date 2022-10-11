@@ -166,9 +166,6 @@ int main(void)
 	  res = f_open(&fil, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	  }
 	  while(res != FR_OK);
-//	  while(res != FR_EXIST) res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
-//	  res = fwrite_wav_header(&fp, 48000, 16, 2);
-//	  while(res != FR_EXIST) res = f_open(&fil, "FILE1.TXT", FA_CREATE_ALWAYS|FA_WRITE);
 	  res = fwrite_wav_header(&fil, 48000, 16, 2);
 	  res = f_close(&fil);
 
