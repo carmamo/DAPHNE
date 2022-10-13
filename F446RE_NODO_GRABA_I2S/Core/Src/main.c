@@ -91,6 +91,7 @@ uint16_t DMA_TxRx_SIZE = DMA_READ_SIZE*2;
 static uint16_t rcvBuf[DMA_READ_SIZE*2*BUFFER_COUNT];
 static uint32_t rCount=0, wCount=0;
 static uint8_t audio_state = STATE_STOP;
+FRESULT res;
 
 
 /* USER CODE END PV */
@@ -169,7 +170,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  FRESULT res;
   char filename[256];
 
   do
@@ -237,7 +237,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 8;
   RCC_OscInitStruct.PLL.PLLN = 50;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 5;
+  RCC_OscInitStruct.PLL.PLLQ = 3;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -433,11 +433,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(CODEC_Reset_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB14 */
-  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  /*Configure GPIO pin : BSP_SDIO_API_Pin */
+  GPIO_InitStruct.Pin = BSP_SDIO_API_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(BSP_SDIO_API_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA9 PA10 */
   GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
@@ -545,7 +545,7 @@ void startRecord(char *filename) {
 		res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	}
 	while(res != FR_OK);
-	res = fwrite_wav_header(&fp, 48000, 16, 2);
+	res = fwrite_wav_header(&fp, 48000, 32, 2);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
 	audio_state = STATE_RECORDING;
