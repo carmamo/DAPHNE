@@ -65,7 +65,7 @@ typedef struct _WaveHeader{
 #define STATE_STOP				1
 #define STATE_RECORDING			2
 #define STATE_START_RECORDING	3
-#define STATE_PLAYING			4
+#define CONNECTING				4
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -85,13 +85,16 @@ SD_HandleTypeDef hsd;
 DMA_HandleTypeDef hdma_sdio_rx;
 DMA_HandleTypeDef hdma_sdio_tx;
 
+UART_HandleTypeDef huart2;
+
 /* USER CODE BEGIN PV */
 AIC3254_t codec;
 uint16_t DMA_TxRx_SIZE = DMA_READ_SIZE*2;
 static uint16_t rcvBuf[DMA_READ_SIZE*2*BUFFER_COUNT];
 static uint32_t rCount=0, wCount=0;
-static uint8_t audio_state = STATE_STOP;
+static uint8_t audio_state = CONNECTING;
 FRESULT res;
+static char RX_data[1];
 
 
 /* USER CODE END PV */
@@ -104,6 +107,7 @@ static void MX_I2C1_Init(void);
 static void MX_I2S2_Init(void);
 static void MX_SDIO_SD_Init(void);
 static void MX_CRC_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void convertEndian(char* sd_path, char *file_in, char *file_out);
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s);
@@ -154,6 +158,7 @@ int main(void)
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
   MX_CRC_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* Initialize CODEC */
@@ -163,8 +168,6 @@ int main(void)
   HAL_Delay(1);
   HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_SET);
   AIC3254_Init(&codec, &hi2c1);
-
-
 
   /* USER CODE END 2 */
 
@@ -184,27 +187,36 @@ int main(void)
   }
   while (res != FR_OK);
 
+  HAL_UART_Receive_IT(&huart2, (uint8_t *) RX_data, 1);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
+  do
+  {
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+	  HAL_Delay(150);
+  }
+  while(audio_state == CONNECTING);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
+
+  for (int i = 0; i < 4; i++)
+  {
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+	  HAL_Delay(500);
+  }
+
 
   uint16_t count;
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-
-	  HAL_Delay(1);
-	  sprintf(filename, "%sr_%05d.wav", SDPath, count++);
-	  startRecord(filename);
-
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-
-	  HAL_Delay(10000);
-
-
+	  if(audio_state == STATE_START_RECORDING)
+	  {
+		  HAL_Delay(1);
+		  sprintf(filename, "%sr_%05d.wav", SDPath, count++);
+		  startRecord(filename);
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -224,7 +236,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -235,9 +247,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 50;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 3;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -250,10 +262,10 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -382,6 +394,39 @@ static void MX_SDIO_SD_Init(void)
 }
 
 /**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -415,9 +460,9 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -613,6 +658,27 @@ FRESULT Format_SD (void)
     }
     free(path);
     return fresult;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+
+	switch (RX_data[0])
+	{
+	case 'G':
+		audio_state = STATE_START_RECORDING;
+		break;
+	case 'P':
+		audio_state = STATE_STOP;
+		break;
+	case '.':
+		audio_state = CONNECTING;
+		break;
+	default:
+		audio_state = STATE_STOP;
+		break;
+	}
+	HAL_UART_Receive_IT(&huart2, (uint8_t *) RX_data, 1);
 }
 /* USER CODE END 4 */
 
