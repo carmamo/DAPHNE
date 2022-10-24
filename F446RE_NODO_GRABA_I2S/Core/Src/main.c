@@ -393,7 +393,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE;
-  hsd.Init.ClockDiv = 2;
+  hsd.Init.ClockDiv = 0;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
@@ -597,7 +597,7 @@ void startRecord(char *filename) {
 		res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	}
 	while(res != FR_OK);
-	res = fwrite_wav_header(&fp, 48000, 32, 2);
+	res = fwrite_wav_header(&fp, 48000, 16, 2);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
 	audio_state = STATE_RECORDING;
