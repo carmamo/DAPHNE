@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * @file           : main.c
- * @brief          : Main program body
- ******************************************************************************
- * @attention
- *
- * Copyright (c) 2022 STMicroelectronics.
- * All rights reserved.
- *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -22,9 +22,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "AIC3254.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +53,7 @@ typedef struct _WaveHeader{
 	char data[4];
 	uint32_t data_size;
 } WAVE_HEADER;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -76,8 +78,6 @@ typedef struct _WaveHeader{
 /* Private variables ---------------------------------------------------------*/
 CRC_HandleTypeDef hcrc;
 
-I2C_HandleTypeDef hi2c1;
-
 I2S_HandleTypeDef hi2s2;
 DMA_HandleTypeDef hdma_spi2_rx;
 
@@ -85,35 +85,33 @@ SD_HandleTypeDef hsd;
 DMA_HandleTypeDef hdma_sdio_rx;
 DMA_HandleTypeDef hdma_sdio_tx;
 
+TIM_HandleTypeDef htim3;
+
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-AIC3254_t codec;
 uint16_t DMA_TxRx_SIZE = DMA_READ_SIZE*2;
 static uint16_t rcvBuf[DMA_READ_SIZE*2*BUFFER_COUNT];
 static uint32_t rCount=0, wCount=0;
-static uint8_t audio_state = CONNECTING;
+static uint8_t audio_state = STATE_STOP;
 FRESULT res;
-static char RX_data[1];
-
-
+static bool contando = false;
+uint16_t count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
-static void MX_I2C1_Init(void);
+static void MX_USART2_UART_Init(void);
 static void MX_I2S2_Init(void);
 static void MX_SDIO_SD_Init(void);
 static void MX_CRC_Init(void);
-static void MX_USART2_UART_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-void convertEndian(char* sd_path, char *file_in, char *file_out);
 FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels);
 void startRecord(char *filename);
 FRESULT Format_SD (void);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -129,7 +127,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 
-
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -138,7 +135,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
 
   /* USER CODE END Init */
 
@@ -152,21 +148,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_I2C1_Init();
+  MX_USART2_UART_Init();
   MX_I2S2_Init();
   MX_SDIO_SD_Init();
-  MX_FATFS_Init();
   MX_CRC_Init();
-  MX_USART2_UART_Init();
+  MX_FATFS_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-
-  /* Initialize CODEC */
-  HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_SET);
-  HAL_Delay(1);
-  HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_RESET);
-  HAL_Delay(1);
-  HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_SET);
-  AIC3254_Init(&codec, &hi2c1);
 
   /* USER CODE END 2 */
 
@@ -186,36 +174,14 @@ int main(void)
   }
   while (res != FR_OK);
 
-  HAL_UART_Receive_IT(&huart2, (uint8_t *) RX_data, 1);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
-  do
-  {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(150);
-  }
-  while(audio_state == CONNECTING);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
-
-  for (int i = 0; i < 4; i++)
-  {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(500);
-  }
-
-
-  uint16_t count = 0;
   while (1)
   {
 	  if(audio_state == STATE_START_RECORDING)
-	  {
-		  HAL_Delay(1);
-		  sprintf(filename, "%sr_%05d.wav", SDPath, count++);
-		  startRecord(filename);
-	  }
+	  	  {
+	  		  HAL_Delay(1);
+	  		  sprintf(filename, "%sr_%05d.wav", SDPath, count++);
+	  		  startRecord(filename);
+	  	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -235,7 +201,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -251,13 +217,6 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLQ = 7;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Activate the Over-Drive mode
-  */
-  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -304,40 +263,6 @@ static void MX_CRC_Init(void)
 }
 
 /**
-  * @brief I2C1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_I2C1_Init(void)
-{
-
-  /* USER CODE BEGIN I2C1_Init 0 */
-
-  /* USER CODE END I2C1_Init 0 */
-
-  /* USER CODE BEGIN I2C1_Init 1 */
-
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN I2C1_Init 2 */
-
-  /* USER CODE END I2C1_Init 2 */
-
-}
-
-/**
   * @brief I2S2 Initialization Function
   * @param None
   * @retval None
@@ -355,7 +280,7 @@ static void MX_I2S2_Init(void)
   hi2s2.Instance = SPI2;
   hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
   hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_32B;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
   hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
   hi2s2.Init.CPOL = I2S_CPOL_LOW;
@@ -400,6 +325,51 @@ static void MX_SDIO_SD_Init(void)
 }
 
 /**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 1680;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 5000;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
   * @brief USART2 Initialization Function
   * @param None
   * @retval None
@@ -439,8 +409,8 @@ static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
   __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
   /* DMA1_Stream3_IRQn interrupt configuration */
@@ -465,91 +435,67 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9|GPIO_PIN_10, GPIO_PIN_RESET);
+  /*Configure GPIO pin : B1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : CODEC_Reset_Pin */
-  GPIO_InitStruct.Pin = CODEC_Reset_Pin;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(CODEC_Reset_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : BSP_SDIO_API_Pin */
-  GPIO_InitStruct.Pin = BSP_SDIO_API_Pin;
+  /*Configure GPIO pin : PB14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BSP_SDIO_API_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA9 PA10 */
-  GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 
 /* USER CODE BEGIN 4 */
-void convertEndian(char* sd_path, char *file_in, char *file_out) {
-	WAVE_HEADER wave_header;
-	FRESULT res;
-	FIL fin, fout;
-	char fn[256];
-	UINT bw, br;
-	uint16_t bitsSample;
-	uint8_t readBytes;
-	_WORD *w_data;
-	_HALF_WORD *h_data;
-
-	//res = f_mount(&SDFatFS, SDPath, 0);
-	sprintf(fn, "%s%s", sd_path, file_in);
-	res = f_open(&fin, fn, FA_OPEN_EXISTING|FA_READ);
-	sprintf(fn, "%s%s", sd_path, file_out);
-	res = f_open(&fout, fn, FA_CREATE_ALWAYS|FA_WRITE);
-	f_read(&fin, (uint8_t*)&wave_header, sizeof(wave_header), &br);
-
-	bitsSample= wave_header.bitsPerSample;
-	if (bitsSample == 32) {
-		w_data = (_WORD*)malloc(512);
-	} else if (bitsSample == 16){
-		h_data = (_HALF_WORD*)malloc(512);
-	} else {
-		return;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == GPIO_PIN_13 && contando == false) {
+		HAL_TIM_Base_Start_IT(&htim3);
+		contando = true;
 	}
-
-
-	f_write(&fout, (uint8_t*)&wave_header, sizeof(wave_header), &bw);
-	for (int i=0; i < wave_header.data_size; i+=512) {
-		if (bitsSample == 32) {
-			f_read(&fin, (uint8_t*)w_data, 512, &br);
-			for (int i = 0; i < br/4; i++) {
-				w_data[i].w = w_data[i].b[0] << 24 | w_data[i].b[1] << 16 | w_data[i].b[2] << 8 | w_data[i].b[3];
-			}
-			f_write(&fout, (uint8_t*)(w_data), br, &bw);
-		}
-		else {
-			f_read(&fin, (uint8_t*)h_data, 512, &br);
-			for (int i = 0; i < br/2; i++) {
-				h_data[i].hw = h_data[i].b[0] << 8 | h_data[i].b[1];
-			}
-			f_write(&fout, (uint8_t*)(h_data), br, &bw);
-		}
-	}
-	f_close(&fout);
-	f_close(&fin);
+	__NOP();
 }
-
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) {
+		switch (audio_state) {
+		case STATE_STOP:
+			audio_state = STATE_START_RECORDING;
+			break;
+		case STATE_RECORDING:
+			audio_state = STATE_STOP;
+			break;
+		case STATE_START_RECORDING:
+			break;
+		default:
+			audio_state = STATE_STOP;
+			break;
+		}
+		contando = false;
+		HAL_TIM_Base_Stop_IT(&htim3);
+	}
+}
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
 	uint8_t rcvCplt = 0;
 	uint16_t* rpt, *wpt, *temppt;
@@ -596,9 +542,9 @@ void startRecord(char *filename) {
 		res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	}
 	while(res != FR_OK);
-	res = fwrite_wav_header(&fp, 48000, 32, 2);
+	res = fwrite_wav_header(&fp, 48000, 24, 2);
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 	audio_state = STATE_RECORDING;
 	rpt = rcvBuf;
 	wpt = rpt;
@@ -629,7 +575,7 @@ void startRecord(char *filename) {
 	f_lseek(&fp, 40);
 	f_write(&fp, (uint8_t*)&data_len, 4, &bw);
 	f_close(&fp);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 	audio_state = STATE_STOP;
 }
 
@@ -666,28 +612,7 @@ FRESULT Format_SD (void)
     return fresult;
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
 
-	switch (RX_data[0])
-	{
-	case 'G':
-		audio_state = STATE_START_RECORDING;
-		break;
-	case 'P':
-		audio_state = STATE_STOP;
-		break;
-	case '.':
-		audio_state = CONNECTING;
-		break;
-	case '+':
-		audio_state = STATE_STOP;
-		break;
-	default:
-		break;
-	}
-	HAL_UART_Receive_IT(&huart2, (uint8_t *) RX_data, 1);
-}
 /* USER CODE END 4 */
 
 /**
