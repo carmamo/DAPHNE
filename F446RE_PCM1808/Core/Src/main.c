@@ -280,7 +280,7 @@ static void MX_I2S2_Init(void)
   hi2s2.Instance = SPI2;
   hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
   hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_32B;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
   hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
   hi2s2.Init.CPOL = I2S_CPOL_LOW;
@@ -542,7 +542,7 @@ void startRecord(char *filename) {
 		res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	}
 	while(res != FR_OK);
-	res = fwrite_wav_header(&fp, 48000, 24, 2);
+	res = fwrite_wav_header(&fp, 48000, 32, 2);
 
 	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
 	audio_state = STATE_RECORDING;
