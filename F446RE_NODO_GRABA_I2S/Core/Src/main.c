@@ -109,7 +109,6 @@ static void MX_SDIO_SD_Init(void);
 static void MX_CRC_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void convertEndian(char* sd_path, char *file_in, char *file_out);
 FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels);
 void startRecord(char *filename);
 FRESULT Format_SD (void);
@@ -500,59 +499,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void convertEndian(char* sd_path, char *file_in, char *file_out) {
-	WAVE_HEADER wave_header;
-	FRESULT res;
-	FIL fin, fout;
-	char fn[256];
-	UINT bw, br;
-	uint16_t bitsSample;
-	uint8_t readBytes;
-	_WORD *w_data;
-	_HALF_WORD *h_data;
-
-	//res = f_mount(&SDFatFS, SDPath, 0);
-	sprintf(fn, "%s%s", sd_path, file_in);
-	res = f_open(&fin, fn, FA_OPEN_EXISTING|FA_READ);
-	sprintf(fn, "%s%s", sd_path, file_out);
-	res = f_open(&fout, fn, FA_CREATE_ALWAYS|FA_WRITE);
-	f_read(&fin, (uint8_t*)&wave_header, sizeof(wave_header), &br);
-
-	bitsSample= wave_header.bitsPerSample;
-	if (bitsSample == 32) {
-		w_data = (_WORD*)malloc(512);
-	} else if (bitsSample == 16){
-		h_data = (_HALF_WORD*)malloc(512);
-	} else {
-		return;
-	}
-
-
-	f_write(&fout, (uint8_t*)&wave_header, sizeof(wave_header), &bw);
-	for (int i=0; i < wave_header.data_size; i+=512) {
-		if (bitsSample == 32) {
-			f_read(&fin, (uint8_t*)w_data, 512, &br);
-			for (int i = 0; i < br/4; i++) {
-				w_data[i].w = w_data[i].b[0] << 24 | w_data[i].b[1] << 16 | w_data[i].b[2] << 8 | w_data[i].b[3];
-			}
-			f_write(&fout, (uint8_t*)(w_data), br, &bw);
-		}
-		else {
-			f_read(&fin, (uint8_t*)h_data, 512, &br);
-			for (int i = 0; i < br/2; i++) {
-				h_data[i].hw = h_data[i].b[0] << 8 | h_data[i].b[1];
-			}
-			f_write(&fout, (uint8_t*)(h_data), br, &bw);
-		}
-	}
-	f_close(&fout);
-	f_close(&fin);
-}
-
-
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
-	uint8_t rcvCplt = 0;
-	uint16_t* rpt, *wpt, *temppt;
+	uint16_t *rpt;
 
 	rCount++;
 	rpt = (rcvBuf)+(rCount%BUFFER_COUNT)*DMA_TxRx_SIZE;
@@ -583,7 +531,7 @@ FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample,
 }
 
 void startRecord(char *filename) {
-	uint16_t* rpt, *wpt, *temppt;
+	uint16_t *rpt, *wpt;
 	UINT bw;
 	UINT writeBytes;
 	UINT skipCount=125;// skip 0.5 second
