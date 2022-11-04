@@ -52,6 +52,7 @@ extern "C" {
 #define POW_TUN				0x3d			// ADC Power Tune Configuration Register
 #define AIQC_CR				0x47			// Analog Input Quick Charging Configuration Register
 #define REF_POW_CR			0x7b			// Reference Power-up Configuration Register
+#define MICBIAS_CR			0x33			// MICBIAS Configuration Register
 #define LROUTE_PCR			0x34			// Left MICPGA Positive Terminal Input Routing Configuration Register
 #define LROUTE_NCR			0x36			// Left MICPGA Negative Terminal Input Routing Configuration Register
 #define RROUTE_PCR			0x37			// Right MICPGA Positive Terminal Input Routing Configuration Register
