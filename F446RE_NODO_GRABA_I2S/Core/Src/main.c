@@ -65,7 +65,7 @@ typedef struct _WaveHeader{
 #define STATE_STOP				1
 #define STATE_RECORDING			2
 #define STATE_START_RECORDING	3
-#define STATE_PLAYING			4
+#define CONNECTING				4
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -74,6 +74,8 @@ typedef struct _WaveHeader{
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CRC_HandleTypeDef hcrc;
+
 I2C_HandleTypeDef hi2c1;
 
 I2S_HandleTypeDef hi2s2;
@@ -83,12 +85,16 @@ SD_HandleTypeDef hsd;
 DMA_HandleTypeDef hdma_sdio_rx;
 DMA_HandleTypeDef hdma_sdio_tx;
 
+UART_HandleTypeDef huart2;
+
 /* USER CODE BEGIN PV */
 AIC3254_t codec;
 uint16_t DMA_TxRx_SIZE = DMA_READ_SIZE*2;
 static uint16_t rcvBuf[DMA_READ_SIZE*2*BUFFER_COUNT];
 static uint32_t rCount=0, wCount=0;
-static uint8_t audio_state = STATE_STOP;
+static uint8_t audio_state = CONNECTING;
+FRESULT res;
+static char RX_data[1];
 
 
 /* USER CODE END PV */
@@ -100,11 +106,12 @@ static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2S2_Init(void);
 static void MX_SDIO_SD_Init(void);
+static void MX_CRC_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void convertEndian(char* sd_path, char *file_in, char *file_out);
-void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s);
 FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels);
 void startRecord(char *filename);
+FRESULT Format_SD (void);
 
 /* USER CODE END PFP */
 
@@ -148,6 +155,8 @@ int main(void)
   MX_I2S2_Init();
   MX_SDIO_SD_Init();
   MX_FATFS_Init();
+  MX_CRC_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* Initialize CODEC */
@@ -162,30 +171,50 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  FRESULT res;
   char filename[256];
-  res = f_mount(&SDFatFS, SDPath, 0);
 
-  uint16_t count;
+  do
+  {
+	  res = f_mount(&SDFatFS, SDPath, 1);
+  }
+  while( res != FR_OK);
+
+  do
+  {
+	  res = Format_SD();
+  }
+  while (res != FR_OK);
+
+  HAL_UART_Receive_IT(&huart2, (uint8_t *) RX_data, 1);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
+  do
+  {
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+	  HAL_Delay(150);
+  }
+  while(audio_state == CONNECTING);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);
+
+  for (int i = 0; i < 4; i++)
+  {
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_9);
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+	  HAL_Delay(500);
+  }
+
+
+  uint16_t count = 0;
   while (1)
   {
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-
-	  HAL_Delay(1);
-	  sprintf(filename, "%sr_%05d.wav", SDPath, count++);
-	  startRecord(filename);
-
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-	  HAL_Delay(1000);
-
-	  HAL_Delay(10000);
-
-
+	  if(audio_state == STATE_START_RECORDING)
+	  {
+		  HAL_Delay(1);
+		  sprintf(filename, "%sr_%05d.wav", SDPath, count++);
+		  startRecord(filename);
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -205,7 +234,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -216,11 +245,18 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 50;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 5;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -231,13 +267,39 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
+
 }
 
 /**
@@ -292,7 +354,7 @@ static void MX_I2S2_Init(void)
   hi2s2.Instance = SPI2;
   hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
   hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
   hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
   hi2s2.Init.CPOL = I2S_CPOL_LOW;
@@ -328,11 +390,44 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
+  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE;
   hsd.Init.ClockDiv = 0;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 
@@ -370,9 +465,9 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -388,11 +483,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(CODEC_Reset_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  /*Configure GPIO pin : BSP_SDIO_API_Pin */
+  GPIO_InitStruct.Pin = BSP_SDIO_API_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(BSP_SDIO_API_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PA9 PA10 */
   GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
@@ -404,59 +499,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void convertEndian(char* sd_path, char *file_in, char *file_out) {
-	WAVE_HEADER wave_header;
-	FRESULT res;
-	FIL fin, fout;
-	char fn[256];
-	UINT bw, br;
-	uint16_t bitsSample;
-	uint8_t readBytes;
-	_WORD *w_data;
-	_HALF_WORD *h_data;
-
-	//res = f_mount(&SDFatFS, SDPath, 0);
-	sprintf(fn, "%s%s", sd_path, file_in);
-	res = f_open(&fin, fn, FA_OPEN_EXISTING|FA_READ);
-	sprintf(fn, "%s%s", sd_path, file_out);
-	res = f_open(&fout, fn, FA_CREATE_ALWAYS|FA_WRITE);
-	f_read(&fin, (uint8_t*)&wave_header, sizeof(wave_header), &br);
-
-	bitsSample= wave_header.bitsPerSample;
-	if (bitsSample == 32) {
-		w_data = (_WORD*)malloc(512);
-	} else if (bitsSample == 16){
-		h_data = (_HALF_WORD*)malloc(512);
-	} else {
-		return;
-	}
-
-
-	f_write(&fout, (uint8_t*)&wave_header, sizeof(wave_header), &bw);
-	for (int i=0; i < wave_header.data_size; i+=512) {
-		if (bitsSample == 32) {
-			f_read(&fin, (uint8_t*)w_data, 512, &br);
-			for (int i = 0; i < br/4; i++) {
-				w_data[i].w = w_data[i].b[0] << 24 | w_data[i].b[1] << 16 | w_data[i].b[2] << 8 | w_data[i].b[3];
-			}
-			f_write(&fout, (uint8_t*)(w_data), br, &bw);
-		}
-		else {
-			f_read(&fin, (uint8_t*)h_data, 512, &br);
-			for (int i = 0; i < br/2; i++) {
-				h_data[i].hw = h_data[i].b[0] << 8 | h_data[i].b[1];
-			}
-			f_write(&fout, (uint8_t*)(h_data), br, &bw);
-		}
-	}
-	f_close(&fout);
-	f_close(&fin);
-}
-
-
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s){
-	uint8_t rcvCplt = 0;
-	uint16_t* rpt, *wpt, *temppt;
+	uint16_t *rpt;
 
 	rCount++;
 	rpt = (rcvBuf)+(rCount%BUFFER_COUNT)*DMA_TxRx_SIZE;
@@ -477,8 +521,8 @@ FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample,
 	wave_header.format = 1; // PCM
 	wave_header.channels = channels; // channels
 	wave_header.sampleRate=sampleRate;  // sample rate
-	wave_header.rbc = sampleRate*bitsPerSample*2/8;
-	wave_header.bc =  bitsPerSample*2/8;
+	wave_header.rbc = sampleRate*bitsPerSample*channels/8;
+	wave_header.bc =  bitsPerSample*channels/8;
 	wave_header.bitsPerSample = bitsPerSample; //bitsPerSample
 	wave_header.data[0] = 'd'; wave_header.data[1] = 'a';
 	wave_header.data[2] = 't'; wave_header.data[3] = 'a';
@@ -487,7 +531,7 @@ FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample,
 }
 
 void startRecord(char *filename) {
-	uint16_t* rpt, *wpt, *temppt;
+	uint16_t *rpt, *wpt;
 	UINT bw;
 	UINT writeBytes;
 	UINT skipCount=125;// skip 0.5 second
@@ -495,8 +539,12 @@ void startRecord(char *filename) {
 	FRESULT res;
 
 	writeBytes = DMA_TxRx_SIZE*2;
-	while(res != FR_EXIST) res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
-	res = fwrite_wav_header(&fp, 16000, 32, 2);
+	do
+	{
+		res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
+	}
+	while(res != FR_OK);
+	res = fwrite_wav_header(&fp, 48000, 32, 2);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
 	audio_state = STATE_RECORDING;
@@ -531,6 +579,62 @@ void startRecord(char *filename) {
 	f_close(&fp);
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);
 	audio_state = STATE_STOP;
+}
+
+FRESULT Format_SD (void)
+{
+    DIR dir;
+    static FILINFO fno;
+    static FRESULT fresult;
+
+    char *path = malloc(20*sizeof (char));
+    sprintf (path, "%s","/");
+
+    fresult = f_opendir(&dir, path);                       /* Open the directory */
+    if (fresult == FR_OK)
+    {
+        for (;;)
+        {
+            fresult = f_readdir(&dir, &fno);                   /* Read a directory item */
+            if (fresult != FR_OK || fno.fname[0] == 0) break;  /* Break on error or end of dir */
+            if (fno.fattrib & AM_DIR)     /* It is a directory */
+            {
+            	if (!(strcmp ("SYSTEM~1", fno.fname))) continue;
+            	fresult = f_unlink(fno.fname);
+            	if (fresult == FR_DENIED) continue;
+            }
+            else
+            {   /* It is a file. */
+               fresult = f_unlink(fno.fname);
+            }
+        }
+        f_closedir(&dir);
+    }
+    free(path);
+    return fresult;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+
+	switch (RX_data[0])
+	{
+	case 'G':
+		audio_state = STATE_START_RECORDING;
+		break;
+	case 'P':
+		audio_state = STATE_STOP;
+		break;
+	case '.':
+		audio_state = CONNECTING;
+		break;
+	case '+':
+		audio_state = STATE_STOP;
+		break;
+	default:
+		break;
+	}
+	HAL_UART_Receive_IT(&huart2, (uint8_t *) RX_data, 1);
 }
 /* USER CODE END 4 */
 

@@ -1,2 +1,2 @@
 ../Core/Src/AIC3254.c:28:9:AIC3254_Init	24	static
-../Core/Src/AIC3254.c:163:19:AIC3254_SendCommand	32	static
+../Core/Src/AIC3254.c:168:19:AIC3254_SendCommand	32	static
