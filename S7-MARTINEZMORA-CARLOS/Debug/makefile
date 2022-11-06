@@ -66,7 +66,7 @@ main-build: S7-MARTINEZMORA-CARLOS.elf secondary-outputs
 
 # Tool invocations
 S7-MARTINEZMORA-CARLOS.elf S7-MARTINEZMORA-CARLOS.map: $(OBJS) $(USER_OBJS) /home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/STM32F070RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "S7-MARTINEZMORA-CARLOS.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"/home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/STM32F070RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="S7-MARTINEZMORA-CARLOS.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "S7-MARTINEZMORA-CARLOS.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0 -T"/home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/STM32F070RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="S7-MARTINEZMORA-CARLOS.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
