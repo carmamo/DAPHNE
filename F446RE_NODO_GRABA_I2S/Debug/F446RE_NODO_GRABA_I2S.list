@@ -1369,9 +1369,9 @@ static void MX_I2S2_Init(void)
  8000b7e:	4b10      	ldr	r3, [pc, #64]	; (8000bc0 <MX_I2S2_Init+0x54>)
  8000b80:	2200      	movs	r2, #0
  8000b82:	609a      	str	r2, [r3, #8]
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B_EXTENDED;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B;
  8000b84:	4b0e      	ldr	r3, [pc, #56]	; (8000bc0 <MX_I2S2_Init+0x54>)
- 8000b86:	2201      	movs	r2, #1
+ 8000b86:	2200      	movs	r2, #0
  8000b88:	60da      	str	r2, [r3, #12]
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_ENABLE;
  8000b8a:	4b0d      	ldr	r3, [pc, #52]	; (8000bc0 <MX_I2S2_Init+0x54>)
