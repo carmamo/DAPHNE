@@ -1381,9 +1381,9 @@ static void MX_I2S2_Init(void)
  8000b92:	4b0b      	ldr	r3, [pc, #44]	; (8000bc0 <MX_I2S2_Init+0x54>)
  8000b94:	f64b 3280 	movw	r2, #48000	; 0xbb80
  8000b98:	615a      	str	r2, [r3, #20]
-  hi2s2.Init.CPOL = I2S_CPOL_LOW;
+  hi2s2.Init.CPOL = I2S_CPOL_HIGH;
  8000b9a:	4b09      	ldr	r3, [pc, #36]	; (8000bc0 <MX_I2S2_Init+0x54>)
- 8000b9c:	2200      	movs	r2, #0
+ 8000b9c:	2208      	movs	r2, #8
  8000b9e:	619a      	str	r2, [r3, #24]
   hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
  8000ba0:	4b07      	ldr	r3, [pc, #28]	; (8000bc0 <MX_I2S2_Init+0x54>)
