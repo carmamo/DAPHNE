@@ -61,6 +61,11 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
 	status = AIC3254_SendCommand(dev, AOSR, 0x80);
 	if(status != HAL_OK) exit(1);
 
+	/* Disable DIN Pin */
+
+	status = AIC3254_SendCommand(dev, DIN_CR, 0x02);
+	if(status != HAL_OK) exit(1);
+
 	/* Select ADC PRB_R1 */
 
 	status = AIC3254_SendCommand(dev, PBCR, 0x01);

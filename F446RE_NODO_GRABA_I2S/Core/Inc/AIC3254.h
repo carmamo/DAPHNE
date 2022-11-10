@@ -41,6 +41,7 @@ extern "C" {
 #define CSR_8				0x12			// Clock Setting Register 8, NADC Values
 #define CSR_9				0x13			// Clock Setting Register 9, MADC Values
 #define AOSR				0x14			// ADC Oversampling Register
+#define DIN_CR				0x36			// DIN Function Control Register
 #define PBCR				0x3d			// ADC Signal Processing Block Control Register
 #define CH_SETUP			0x51			// ADC Channel Setup Register
 #define CH_GAIN				0x52			// ADC Fine Gain Adjust Register

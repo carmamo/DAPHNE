@@ -165,6 +165,7 @@ int main(void)
   HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_RESET);
   HAL_Delay(1);
   HAL_GPIO_WritePin(CODEC_Reset_GPIO_Port, CODEC_Reset_Pin, GPIO_PIN_SET);
+  HAL_Delay(2);
   AIC3254_Init(&codec, &hi2c1);
 
   /* USER CODE END 2 */
@@ -544,7 +545,7 @@ void startRecord(char *filename) {
 		res = f_open(&fp, filename, FA_CREATE_ALWAYS|FA_WRITE);
 	}
 	while(res != FR_OK);
-	res = fwrite_wav_header(&fp, 48000, 32, 2);
+	res = fwrite_wav_header(&fp, 48000, 16, 2);
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);
 	audio_state = STATE_RECORDING;
