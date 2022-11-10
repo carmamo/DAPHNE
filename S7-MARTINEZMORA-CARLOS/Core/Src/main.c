@@ -46,10 +46,24 @@ typedef struct
 	uint16_t espera;
 	uint16_t velocidad;
 } lock_q;
+typedef struct
+{
+	int small;		// Length of small line in px
+	int big;		// Length of big line	in px
+	int center_x;	// Center x position in px
+	int center_y;	// Center y position in px
+	int start_x;
+	int start_y;
+	int end_x;
+	int end_y;
+	int angle;
+} needle;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define OLED_ADDR	0x78 // slave address in 7 bit = 0x3C
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,49 +84,49 @@ UART_HandleTypeDef huart2;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .stack_size = 64 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for OLED */
 osThreadId_t OLEDHandle;
 const osThreadAttr_t OLED_attributes = {
   .name = "OLED",
-  .stack_size = 256 * 4,
+  .stack_size = 192 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for ADC */
 osThreadId_t ADCHandle;
 const osThreadAttr_t ADC_attributes = {
   .name = "ADC",
-  .stack_size = 128 * 4,
+  .stack_size = 64 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for SERVO */
 osThreadId_t SERVOHandle;
 const osThreadAttr_t SERVO_attributes = {
   .name = "SERVO",
-  .stack_size = 128 * 4,
+  .stack_size = 64 * 4,
   .priority = (osPriority_t) osPriorityLow1,
 };
 /* Definitions for STEPPER */
 osThreadId_t STEPPERHandle;
 const osThreadAttr_t STEPPER_attributes = {
   .name = "STEPPER",
-  .stack_size = 256 * 4,
+  .stack_size = 64 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for SERIAL */
 osThreadId_t SERIALHandle;
 const osThreadAttr_t SERIAL_attributes = {
   .name = "SERIAL",
-  .stack_size = 256 * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for LOCK */
 osThreadId_t LOCKHandle;
 const osThreadAttr_t LOCK_attributes = {
   .name = "LOCK",
-  .stack_size = 128 * 4,
+  .stack_size = 64 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for lock_queue */
@@ -297,6 +311,8 @@ uint8_t u8x8_stm32_gpio_and_delay(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, vo
 uint8_t u8x8_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr);
 uint32_t map(uint32_t au32_IN, uint32_t au32_INmin, uint32_t au32_INmax, uint32_t au32_OUTmin, uint32_t au32_OUTmax);
 void send_uart(char *string);
+double radians(double degrees);
+void calc_needle(needle *s);
 
 
 /* USER CODE END PFP */
@@ -340,6 +356,14 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
+  /*
+   * CALCULATE RPM TABLE
+   */
+  for(int i = 2; i < 11; i++)
+  {
+  	steps_sec = 1000/(i);									// pf = pulse frequency
+  	rpm[i-2] = 60*(steps_sec/4096);							// 4096 half steps
+  }
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -354,10 +378,11 @@ int main(void)
   Adc_SemHandle = osSemaphoreNew(1, 1, &Adc_Sem_attributes);
 
   /* creation of Rx_Sem */
-  Rx_SemHandle = osSemaphoreNew(1, 0, &Rx_Sem_attributes);
+  Rx_SemHandle = osSemaphoreNew(1, 1, &Rx_Sem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+  Rx_SemHandle = osSemaphoreNew(1, 0, &Rx_Sem_attributes);
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -756,7 +781,7 @@ uint8_t u8x8_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 		buf_idx = 0;
 		break;
 	case U8X8_MSG_BYTE_END_TRANSFER:
-		HAL_I2C_Master_Transmit(&hi2c1, u8x8_GetI2CAddress(u8x8) << 1, buffer, buf_idx, 1000);
+		HAL_I2C_Master_Transmit(&hi2c1, u8x8_GetI2CAddress(u8x8), buffer, buf_idx, 1000);
 		break;
 	default:
 		return 0;
@@ -796,6 +821,17 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	osSemaphoreRelease(Rx_SemHandle);
 	HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)buf, 5);
 }
+double radians(double degrees)
+{
+	return degrees * M_PI / 180.0;
+}
+void calc_needle(needle *s)
+{
+	s->end_x = (s->big * -sin(radians(s->angle))) + s->center_x;
+	s->end_y = (s->big * cos(radians(s->angle))) + s->center_y;
+	s->start_x = (s->small * -sin(radians(s->angle + 180.0))) + s->center_x;
+	s->start_y = (s->small * cos(radians(s->angle + 180.0))) + s->center_y;
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -826,20 +862,6 @@ void StartDefaultTask(void *argument)
 void oled_update(void *argument)
 {
   /* USER CODE BEGIN oled_update */
-	static int needle_angle_left;
-	static int needle_angle_right;
-	static int needle_start_x_left;
-	static int needle_start_y_left;
-	static int needle_end_x_left;
-	static int needle_end_y_left;
-	static int needle_start_x_right;
-	static int needle_start_y_right;
-	static int needle_end_x_right;
-	static int needle_end_y_right;
-	static int needle_center_x = 29;
-	static int needle_center_y = 31;
-	static int needle_big = 25;
-	static int needle_small = 10;
 	static int needle_offset_x_left;
 	static int needle_offset_y_left;
 	static int needle_offset_x_right;
@@ -848,33 +870,47 @@ void oled_update(void *argument)
 	static char temp[5];
 	static char pos[5];
 	static char speed[10];
+	static needle left = {
+			.small = 10,
+			.big = 25,
+			.center_x = 29,
+			.center_y = 31,
+			.start_x = 0,
+			.start_y = 0,
+			.end_x = 0,
+			.end_y = 0,
+			.angle = 45 };
+	static needle right = {
+			.small = 10,
+			.big = 25,
+			.center_x = 29 + 68,
+			.center_y = 31,
+			.start_x = 0,
+			.start_y = 0,
+			.end_x = 0,
+			.end_y = 0,
+			.angle = 45 };
 
 	u8g2_Setup_ssd1306_i2c_128x64_noname_2(&u8g2, U8G2_R0, u8x8_byte_i2c, u8x8_stm32_gpio_and_delay);
-	u8g2_SetI2CAddress(&u8g2,0x3C);	// 0x78 = 0x3C << 1
+	u8g2_SetI2CAddress(&u8g2, OLED_ADDR);	// 0x78
 	u8g2_InitDisplay(&u8g2); // send init sequence to the display, display is in sleep mode after this,
 	u8g2_SetPowerSave(&u8g2, 0); // wake up display
 	u8g2_SetFont(&u8g2, u8g2_font_5x7_tr);
   /* Infinite loop */
 	for(;;)
 	{
-		needle_angle_left = map(__HAL_TIM_GET_COMPARE(&htim3, TIM_CHANNEL_2), 99, 199, 45, 270+45);
-		needle_angle_right = map(rpm[periodo-2], 0, 15, 45, 270+45);
+		left.angle = map(__HAL_TIM_GET_COMPARE(&htim3, TIM_CHANNEL_2), 99, 199, 45, 270+45);
+		right.angle = map(rpm[periodo-2], 0, 15, 45, 270+45);
 
-		needle_end_x_left = (needle_big * -sin(needle_angle_left * M_PI / 180.0)) + needle_center_x;
-		needle_end_y_left = (needle_big * cos(needle_angle_left * M_PI / 180.0)) + needle_center_y;
-		needle_start_x_left = (needle_small * -sin((needle_angle_left + 180.0) * M_PI / 180.0)) + needle_center_x;
-		needle_start_y_left = (needle_small * cos((needle_angle_left + 180.0) * M_PI / 180.0)) + needle_center_y;
 
-		needle_end_x_right = (needle_big * -sin(needle_angle_right * M_PI / 180.0)) + needle_center_x + right_offset;
-		needle_end_y_right = (needle_big * cos(needle_angle_right * M_PI / 180.0)) + needle_center_y;
-		needle_start_x_right = (needle_small * -sin((needle_angle_right + 180.0) * M_PI / 180.0)) + needle_center_x + right_offset;
-		needle_start_y_right = (needle_small * cos((needle_angle_right + 180.0) * M_PI / 180.0)) + needle_center_y;
+		calc_needle(&left);
+		calc_needle(&right);
 
 		sprintf(temp, "%0.2f", adc_value.temp);
 		sprintf(pos, "%li", map(__HAL_TIM_GET_COMPARE(&htim3,TIM_CHANNEL_2), 99, 199, 0, 90));
 		sprintf(speed, "%0.2fRPM", rpm[periodo-2]);
 
-		if((needle_angle_left > 45 && needle_angle_left < 135) || (needle_angle_left > 225 && needle_angle_left < 315))
+		if((left.angle > 45 && left.angle < 135) || (left.angle > 225 && left.angle < 315))
 		{
 			needle_offset_x_left = 0;
 			needle_offset_y_left = 1;
@@ -884,7 +920,7 @@ void oled_update(void *argument)
 			needle_offset_x_left = 1;
 			needle_offset_y_left = 0;
 		}
-		if((needle_angle_right > 45 && needle_angle_right < 135) || (needle_angle_right > 225 && needle_angle_right < 315))
+		if((right.angle > 45 && right.angle < 135) || (right.angle > 225 && right.angle < 315))
 		{
 			needle_offset_x_right = 0;
 			needle_offset_y_right = 1;
@@ -908,18 +944,18 @@ void oled_update(void *argument)
 			u8g2_DrawStr(&u8g2, 52, 64, temp);
 
 			// draw needle and center circle Left Gauge
-			u8g2_DrawLine(&u8g2, needle_start_x_left, needle_start_y_left, needle_end_x_left, needle_end_y_left);
-			u8g2_DrawLine(&u8g2, needle_start_x_left + needle_offset_x_left, needle_start_y_left + needle_offset_y_left,
-								 needle_end_x_left + needle_offset_x_left, needle_end_y_left + needle_offset_y_left);
+			u8g2_DrawLine(&u8g2, left.start_x, left.start_y, left.end_x, left.end_y);
+			u8g2_DrawLine(&u8g2, left.start_x + needle_offset_x_left, left.start_y + needle_offset_y_left,
+								 left.end_x + needle_offset_x_left, left.end_y + needle_offset_y_left);
 			u8g2_DrawStr(&u8g2, 26, 64, pos);
 
 
 			u8g2_DrawBitmap(&u8g2, 26, 28, 8/8, 8, Contour_Needle);
 
 			// draw needle and center circle Right Gauge
-			u8g2_DrawLine(&u8g2, needle_start_x_right, needle_start_y_right, needle_end_x_right, needle_end_y_right);
-			u8g2_DrawLine(&u8g2, needle_start_x_right + needle_offset_x_right, needle_start_y_right + needle_offset_y_right,
-								 needle_end_x_right + needle_offset_x_right, needle_end_y_right + needle_offset_y_right);
+			u8g2_DrawLine(&u8g2, right.start_x, right.start_y, right.end_x, right.end_y);
+			u8g2_DrawLine(&u8g2, right.start_x + needle_offset_x_right, right.start_y + needle_offset_y_right,
+								 right.end_x + needle_offset_x_right, right.end_y + needle_offset_y_right);
 			u8g2_DrawStr(&u8g2, 26 + right_offset, 64, speed);
 
 
@@ -986,11 +1022,6 @@ void stepper_fx(void *argument)
   /* USER CODE BEGIN stepper_fx */
 int ciclo = 0;
 
-for(int i = 2; i < 11; i++)
-{
-	steps_sec = 1000/(i);									// pf = pulse frequency
-	rpm[i-2] = 60*(steps_sec/4096);							// 4096 half steps
-}
 /* Infinite loop */
 for(;;)
 {
