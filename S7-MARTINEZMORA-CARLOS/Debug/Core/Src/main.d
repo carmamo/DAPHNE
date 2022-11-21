@@ -40,7 +40,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0/portmacro.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h \
  /home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/Drivers/u8g2/u8g2.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/Drivers/u8g2/u8x8.h
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/Drivers/u8g2/u8x8.h \
+ ../Core/Inc/ICI2022.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F0xx_HAL_Driver/Inc/stm32f0xx_hal.h:
 ../Core/Inc/stm32f0xx_hal_conf.h:
@@ -84,3 +85,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h:
 /home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/Drivers/u8g2/u8g2.h:
 /home/carlos/STM32CubeIDE/workspace_1.9.0/S7-MARTINEZMORA-CARLOS/Drivers/u8g2/u8x8.h:
+../Core/Inc/ICI2022.h:

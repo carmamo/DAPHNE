@@ -1,0 +1,2 @@
+/home/carlos/STM32CubeIDE/workspace_1.9.0/LTDC_Display_1Layer/CM7/Src/stm32h7xx_hal_msp.c:49:6:HAL_LTDC_MspInit	64	static
+/home/carlos/STM32CubeIDE/workspace_1.9.0/LTDC_Display_1Layer/CM7/Src/stm32h7xx_hal_msp.c:114:6:HAL_LTDC_MspDeInit	16	static

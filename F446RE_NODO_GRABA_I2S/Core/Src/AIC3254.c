@@ -118,9 +118,9 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
 	status = AIC3254_SendCommand(dev, LROUTE_PCR, 0x20);
 	if(status != HAL_OK) exit(1);
 
-	/* Route Common Mode to LEFT_M with impedance of 20K */
+	/* Route CM1L to LEFT_M with impedance of 20K */
 
-	status = AIC3254_SendCommand(dev, LROUTE_NCR, 0x20);
+	status = AIC3254_SendCommand(dev, LROUTE_NCR, 0x80);
 	if(status != HAL_OK) exit(1);
 
 	/* Route IN1R to Right_P with 20K input impedance */
@@ -128,9 +128,9 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
 	status = AIC3254_SendCommand(dev, RROUTE_PCR, 0x80);
 	if(status != HAL_OK) exit(1);
 
-	/* Route Common Mode to Right_M with impedance of 20K */
+	/* Route CM1R to Right_M with impedance of 20K */
 
-	status = AIC3254_SendCommand(dev, RROUTE_NCR, 0x20);
+	status = AIC3254_SendCommand(dev, RROUTE_NCR, 0x80);
 	if(status != HAL_OK) exit(1);
 
 	/* Unmute Left MICPGA, Gain selection of 6dB to make channel gain 0dB
