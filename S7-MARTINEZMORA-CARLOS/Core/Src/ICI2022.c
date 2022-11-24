@@ -249,9 +249,9 @@ uint8_t u8x8_byte_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 /* MATH FUNCTIONS */
 /***************************************************************************/
 
-uint32_t map(uint32_t au32_IN, uint32_t au32_INmin, uint32_t au32_INmax, uint32_t au32_OUTmin, uint32_t au32_OUTmax)
+uint32_t map(uint32_t IN, uint32_t INmin, uint32_t INmax, uint32_t OUTmin, uint32_t OUTmax)
 {
-    return ((((au32_IN - au32_INmin)*(au32_OUTmax - au32_OUTmin))/(au32_INmax - au32_INmin)) + au32_OUTmin);
+    return ((((IN - INmin)*(OUTmax - OUTmin))/(INmax - INmin)) + OUTmin);
 }
 
 void calc_needle(needle *s)

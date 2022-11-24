@@ -1,0 +1,4 @@
+../Core/Src/lepton.c:42:6:lepton_Init	24	static
+../Core/Src/lepton.c:50:6:print_image_binary_background	8	static
+../Core/Src/lepton.c:90:6:transfer	24	static
+../Core/Src/lepton.c:175:6:send_byte	16	static

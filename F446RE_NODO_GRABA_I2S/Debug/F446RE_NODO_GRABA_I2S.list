@@ -700,10 +700,10 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
  800077e:	2001      	movs	r0, #1
  8000780:	f00a fdae 	bl	800b2e0 <exit>
 
-	/* Route Common Mode to LEFT_M with impedance of 20K */
+	/* Route CM1L to LEFT_M with impedance of 20K */
 
-	status = AIC3254_SendCommand(dev, LROUTE_NCR, 0x20);
- 8000784:	2220      	movs	r2, #32
+	status = AIC3254_SendCommand(dev, LROUTE_NCR, 0x80);
+ 8000784:	2280      	movs	r2, #128	; 0x80
  8000786:	2136      	movs	r1, #54	; 0x36
  8000788:	6878      	ldr	r0, [r7, #4]
  800078a:	f000 f868 	bl	800085e <AIC3254_SendCommand>
@@ -732,10 +732,10 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
  80007b2:	2001      	movs	r0, #1
  80007b4:	f00a fd94 	bl	800b2e0 <exit>
 
-	/* Route Common Mode to Right_M with impedance of 20K */
+	/* Route CM1R to Right_M with impedance of 20K */
 
-	status = AIC3254_SendCommand(dev, RROUTE_NCR, 0x20);
- 80007b8:	2220      	movs	r2, #32
+	status = AIC3254_SendCommand(dev, RROUTE_NCR, 0x80);
+ 80007b8:	2280      	movs	r2, #128	; 0x80
  80007ba:	2139      	movs	r1, #57	; 0x39
  80007bc:	6878      	ldr	r0, [r7, #4]
  80007be:	f000 f84e 	bl	800085e <AIC3254_SendCommand>
