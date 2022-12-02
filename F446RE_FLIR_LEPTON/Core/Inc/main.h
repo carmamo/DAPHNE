@@ -63,6 +63,10 @@ void Error_Handler(void);
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
 #define USART_RX_GPIO_Port GPIOA
+#define FLIR_PWR_DWN_L_Pin GPIO_PIN_11
+#define FLIR_PWR_DWN_L_GPIO_Port GPIOA
+#define FLIR_RESET_L_Pin GPIO_PIN_12
+#define FLIR_RESET_L_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14

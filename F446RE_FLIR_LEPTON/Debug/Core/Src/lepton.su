@@ -1,4 +1,8 @@
-../Core/Src/lepton.c:42:6:lepton_Init	24	static
-../Core/Src/lepton.c:50:6:print_image_binary_background	8	static
-../Core/Src/lepton.c:90:6:transfer	24	static
-../Core/Src/lepton.c:175:6:send_byte	16	static
+../Core/Src/lepton.c:43:6:lepton_Init	24	static
+../Core/Src/lepton.c:52:6:print_image_binary_background	8	static
+../Core/Src/lepton.c:92:6:transfer	24	static
+../Core/Src/lepton.c:164:19:lepton_SetReg	24	static
+../Core/Src/lepton.c:172:19:lepton_GetReg	24	static
+../Core/Src/lepton.c:184:19:lepton_SetData	40	static
+../Core/Src/lepton.c:207:6:send_byte	16	static
+../Core/Src/lepton.c:211:6:send_msg	24	static

@@ -28,6 +28,8 @@ extern "C" {
 
 #define FRAME_SIZE	(164)
 
+#define LEPTON_I2C_ADDR	(0x2A << 1)
+
 typedef struct {
 	/* I2C handle */
 	I2C_HandleTypeDef	*i2cHandle;
@@ -43,13 +45,25 @@ typedef struct {
 
 } lepton_t;
 
-void lepton_Init(SPI_HandleTypeDef *spi, UART_HandleTypeDef *uart, GPIO_TypeDef *port, uint16_t pin);
+void lepton_Init(I2C_HandleTypeDef *i2c, SPI_HandleTypeDef *spi, UART_HandleTypeDef *uart, GPIO_TypeDef *port, uint16_t pin);
 
 void print_image_binary_background(void);
 
 void transfer(void);
 
+HAL_StatusTypeDef lepton_SetReg(uint8_t reg);
+
+HAL_StatusTypeDef lepton_GetReg(uint8_t reg, uint16_t *rxdata);
+
+HAL_StatusTypeDef lepton_SetData(uint8_t *txdata, uint16_t size);
+
+HAL_StatusTypeDef lepton_GetData(uint8_t *rxdata, uint16_t size);
+
+HAL_StatusTypeDef lepton_command(uint16_t cmd);
+
 void send_byte(uint8_t data);
+
+void send_msg(int data);
 
 #ifdef __cplusplus
 }

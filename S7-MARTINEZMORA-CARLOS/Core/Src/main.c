@@ -124,7 +124,6 @@ static char buf[5];
 static unsigned short periodo = 2;
 static enum giro giro_stepper;
 u8g2_t u8g2;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -147,7 +146,6 @@ void servo_lock(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 
 /**
@@ -733,11 +731,24 @@ void adc_read(void *argument)
 {
   /* USER CODE BEGIN adc_read */
 	HAL_ADCEx_Calibration_Start(&hadc);
+	static uint8_t trama[4] = {0x30, 0x00, 0x00, 0xE0};
+	static uint32_t timestamp;
+	timestamp = HAL_GetTick();
 	/* Infinite loop */
 	for(;;)
 	{
 		osSemaphoreAcquire(Adc_SemHandle, osWaitForever);
 		HAL_ADC_Start_IT(&hadc);
+
+		if(HAL_GetTick() - timestamp >= 1000)
+		{
+			trama[1] = (uint8_t)adc_value.temp;
+			trama[2] = (uint8_t)((adc_value.temp - trama[1])*100);
+			HAL_UART_Transmit(&huart2, trama, 4, 100);
+			timestamp = HAL_GetTick();
+		}
+
+
 		osDelay(10);
 	}
   /* USER CODE END adc_read */
@@ -862,17 +873,17 @@ void serial_fx(void *argument)
 			osThreadSuspend(SERVOHandle);
 			osThreadResume(LOCKHandle);
 
-			send_uart("'A': Introduce la espera deseada: (0-255):\r\n\n");
-			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
-			segvel_value.espera = atol(buf);
-			sprintf(msg,"Espera recibida: %d segundos\r\n\n", segvel_value.espera);
-			send_uart(msg);
-			send_uart("'A': Introduce la velocidad deseada: (0-255):\r\n\n");
-			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
-			segvel_value.velocidad = atol(buf);
-			if(segvel_value.velocidad == 0) segvel_value.velocidad++;
-			sprintf(msg,"Velocidad recibida: %d grados/segundo\r\n\n", segvel_value.velocidad);
-			send_uart(msg);
+//			send_uart("'A': Introduce la espera deseada: (0-255):\r\n\n");
+//			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
+//			segvel_value.espera = atol(buf);
+//			sprintf(msg,"Espera recibida: %d segundos\r\n\n", segvel_value.espera);
+//			send_uart(msg);
+//			send_uart("'A': Introduce la velocidad deseada: (0-255):\r\n\n");
+//			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
+//			segvel_value.velocidad = atol(buf);
+//			if(segvel_value.velocidad == 0) segvel_value.velocidad++;
+//			sprintf(msg,"Velocidad recibida: %d grados/segundo\r\n\n", segvel_value.velocidad);
+//			send_uart(msg);
 			segvel_value.espera = segvel_value.espera * 1000;
 			segvel_value.velocidad = 1000/segvel_value.velocidad;
 			osMessageQueuePut(lock_queueHandle, &segvel_value, 1, 0);
@@ -919,6 +930,9 @@ void serial_fx(void *argument)
 			osThreadSuspend(OLEDHandle);
 			u8g2_SetPowerSave(&u8g2, 1); // sleep display
 			break;
+		case 'T':
+			if(buf[3] != 0xE0) break;
+
 		default:
 		{
 			send_uart("ERROR!! Comando no valido\r\n\n");
