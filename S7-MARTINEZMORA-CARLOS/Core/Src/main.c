@@ -120,8 +120,9 @@ const osSemaphoreAttr_t Rx_Sem_attributes = {
 /* USER CODE BEGIN PV */
 static adc_q adc_value = {0, 0, 0.0, 0.0, true};
 static lock_q segvel_value;
-static char buf[5];
+static uint8_t buf[5];
 static unsigned short periodo = 2;
+static uint16_t periodo_temp = 100;
 static enum giro giro_stepper;
 u8g2_t u8g2;
 /* USER CODE END PV */
@@ -768,7 +769,7 @@ void servo_pos(void *argument)
 	/* Infinite loop */
 	for(;;)
 	{
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, map(adc_value.adc_ch1, 0, 4096, 99, 199));
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, map(adc_value.adc_ch1, 0, 4095, 99, 199));
 		osDelay(10);
 
 	}
@@ -834,8 +835,7 @@ for(;;)
 void serial_fx(void *argument)
 {
   /* USER CODE BEGIN serial_fx */
-	static uint16_t angulo = 0;
-	static char msg[50];
+	static uint8_t angulo = 0;
 
 	osThreadSuspend(OLEDHandle);
 	osThreadSuspend(LOCKHandle);
@@ -848,95 +848,94 @@ void serial_fx(void *argument)
 		switch(buf[0])
 		{
 		case 'P':
-		{
-			send_uart("'P': Servo controlado por potenciometro...\r\n\n");
+
+			if(buf[3] != 0xE0) break;
 			osThreadResume(SERVOHandle);
 			osThreadSuspend(LOCKHandle);
 			break;
-		}
+
 		case 'S':
-		{
+
+			if(buf[3] != 0xE0) break;
 			osThreadSuspend(SERVOHandle);
 			osThreadSuspend(LOCKHandle);
-
-			send_uart("'S': Introduce el angulo deseado (0-90):\r\n\n");
-			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
-			angulo = atol(buf);
-			sprintf(msg,"Angulo recibido: %d\r\n\n", angulo);
-			send_uart(msg);
-			angulo = map(angulo, 0, 90, 99, 199);
+			angulo = map(buf[1], 0, 90, 99, 199);
 			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, angulo);
 			break;
-		}
+
 		case 'A':
-		{
+
+			if(buf[3] != 0xE0) break;
 			osThreadSuspend(SERVOHandle);
 			osThreadResume(LOCKHandle);
 
-//			send_uart("'A': Introduce la espera deseada: (0-255):\r\n\n");
-//			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
-//			segvel_value.espera = atol(buf);
-//			sprintf(msg,"Espera recibida: %d segundos\r\n\n", segvel_value.espera);
-//			send_uart(msg);
-//			send_uart("'A': Introduce la velocidad deseada: (0-255):\r\n\n");
-//			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
-//			segvel_value.velocidad = atol(buf);
-//			if(segvel_value.velocidad == 0) segvel_value.velocidad++;
-//			sprintf(msg,"Velocidad recibida: %d grados/segundo\r\n\n", segvel_value.velocidad);
-//			send_uart(msg);
+			segvel_value.espera = buf[1];
+
+			segvel_value.velocidad = buf[2];
+			if(segvel_value.velocidad == 0) segvel_value.velocidad++;
+
 			segvel_value.espera = segvel_value.espera * 1000;
 			segvel_value.velocidad = 1000/segvel_value.velocidad;
 			osMessageQueuePut(lock_queueHandle, &segvel_value, 1, 0);
 			break;
-		}
+
 		case 'D':
-		{
-			send_uart("'D': Sentido Horario...\r\n\n");
+
+			if(buf[3] != 0xE0) break;
+
 			giro_stepper = Horario;
 			break;
-		}
+
 		case 'I':
-		{
-			send_uart("'I': Sentido Antihorario...\r\n\n");
+
+			if(buf[3] != 0xE0) break;
+
 			giro_stepper = Antihorario;
 			break;
-		}
+
 		case 'M':
-		{
-			send_uart("'M': Introduzca el PERIODO (1-9):\r\n\n");
+			if(buf[3] != 0xE0) break;
 			osSemaphoreAcquire(Rx_SemHandle, osWaitForever);
-			if(atol(buf) <= 1)
+			if(buf[1] <= 1)
 			{
 				periodo = 2;
-				send_uart("'M': Recibido 1...\r\n\n");
 				break;
 			}
-			if(atol(buf) >= 9)
+			if(buf[1] >= 9)
 			{
 				periodo = 10;
-				send_uart("'M': Recibido 9...\r\n\n");
 				break;
 			}
-			periodo = atol(buf) + 1;
-			sprintf(msg, "'M': Recibido %hu...\r\n\n", periodo - 1);
-			send_uart(msg);
+
+			periodo = buf[1] + 1;
+
 			break;
-		}
+
 		case 'X':
+
+			if(buf[3] != 0xE0) break;
+
 			osThreadResume(OLEDHandle);
 			u8g2_SetPowerSave(&u8g2, 0); // wake up display
 			break;
+
 		case 'C':
+
+			if(buf[3] != 0xE0) break;
+
 			osThreadSuspend(OLEDHandle);
 			u8g2_SetPowerSave(&u8g2, 1); // sleep display
 			break;
+
 		case 'T':
+
 			if(buf[3] != 0xE0) break;
 
+			periodo_temp = buf[1]*10;
+			break;
+
 		default:
-		{
-			send_uart("ERROR!! Comando no valido\r\n\n");
-		}
+			break;
 		}
 		osDelay(1);
 

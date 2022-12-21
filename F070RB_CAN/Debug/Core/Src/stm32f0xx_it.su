@@ -1,0 +1,5 @@
+../Core/Src/stm32f0xx_it.c:71:6:NMI_Handler	8	static
+../Core/Src/stm32f0xx_it.c:86:6:HardFault_Handler	8	static
+../Core/Src/stm32f0xx_it.c:108:6:EXTI4_15_IRQHandler	8	static
+../Core/Src/stm32f0xx_it.c:124:6:TIM1_BRK_UP_TRG_COM_IRQHandler	8	static
+../Core/Src/stm32f0xx_it.c:138:6:USART2_IRQHandler	8	static

@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "stm32f4xx_hal.h"
+#include <stdbool.h>
 
 /*
  * DEFINES
@@ -51,15 +52,22 @@ void print_image_binary_background(void);
 
 void transfer(void);
 
+void lepton_getPacket(void);
+
 HAL_StatusTypeDef lepton_SetReg(uint8_t reg);
 
-HAL_StatusTypeDef lepton_GetReg(uint8_t reg, uint16_t *rxdata);
+HAL_StatusTypeDef lepton_GetReg(uint16_t reg, uint16_t *rxdata);
 
 HAL_StatusTypeDef lepton_SetData(uint8_t *txdata, uint16_t size);
 
-HAL_StatusTypeDef lepton_GetData(uint8_t *rxdata, uint16_t size);
+HAL_StatusTypeDef lepton_GetData(uint16_t *rxdata, uint16_t size);
 
 HAL_StatusTypeDef lepton_command(uint16_t cmd);
+
+HAL_StatusTypeDef lepton_radiometry(bool rad_enabled);
+
+HAL_StatusTypeDef lepton_vsync(bool vsync_enabled);
+
 
 void send_byte(uint8_t data);
 

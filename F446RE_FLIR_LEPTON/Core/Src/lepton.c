@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 uint8_t lepton_frame_packet[FRAME_SIZE];
 int lepton_image[80][80];
@@ -91,11 +92,8 @@ void print_image_binary_background(void)
 
 void transfer(void)
 {
-
-	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
-
-	HAL_SPI_TransmitReceive(dev.spiHandle, &tx[0], lepton_frame_packet, 164, 100);
-
+	//HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
+	//HAL_SPI_Receive(dev.spiHandle, lepton_frame_packet, FRAME_SIZE,100);
 	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_SET);
 
 	if((lepton_frame_packet[0] & 0xf) != 0x0f)
@@ -161,6 +159,12 @@ void transfer(void)
 	}
 }
 
+void lepton_getPacket(void)
+{
+	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
+	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, FRAME_SIZE);
+}
+
 HAL_StatusTypeDef lepton_SetReg(uint8_t reg)
 {
 	static uint8_t array[2] = {0x00, 0x00};
@@ -169,22 +173,69 @@ HAL_StatusTypeDef lepton_SetReg(uint8_t reg)
 	return HAL_I2C_Master_Transmit(dev.i2cHandle, LEPTON_I2C_ADDR, array, 2, 100);
 }
 
-HAL_StatusTypeDef lepton_GetReg(uint8_t reg, uint16_t *rxdata)
+HAL_StatusTypeDef lepton_GetReg(uint16_t reg, uint16_t *rxdata)
 {
-//	static uint8_t array[2] = {0x00, 0x00};
-//
-//	array[1] = reg;
-//
-//	return HAL_I2C_Mem_Read(dev.i2cHandle, LEPTON_I2C_ADDR, reg, 2, rxdata, 2, 100);
+	HAL_StatusTypeDef status;
 
-	lepton_SetReg(reg);
-	return HAL_I2C_Master_Receive(dev.i2cHandle, LEPTON_I2C_ADDR, (uint8_t *)rxdata, 2, 100);
+	status = HAL_I2C_Mem_Read(dev.i2cHandle, LEPTON_I2C_ADDR, reg, 2, (uint8_t *)rxdata, 2, 100);
+	*rxdata = (*rxdata >> 8 | *rxdata << 8);
+	return status;
+
+//	lepton_SetReg(reg);
+//	return HAL_I2C_Master_Receive(dev.i2cHandle, LEPTON_I2C_ADDR, (uint8_t *)rxdata, 2, 100);
 
 }
 HAL_StatusTypeDef lepton_SetData(uint8_t *txdata, uint16_t size)
 {
-	static uint16_t *data0_reg = 0x0008;
-	static uint16_t *datalength_reg = 0x0006;
+	HAL_StatusTypeDef status;
+	uint16_t *rxdata = (uint16_t *)malloc(sizeof(uint16_t));
+
+	do
+	{
+		lepton_GetReg(0x0002, rxdata);
+	}
+	while(*rxdata & 0x01);
+
+//	HAL_I2C_Master_Transmit(dev.i2cHandle, LEPTON_I2C_ADDR, txdata, size, 100);
+
+	// Write data, 0x0008 Data 0 Address (beginning of data block)
+	status = HAL_I2C_Mem_Write(dev.i2cHandle, LEPTON_I2C_ADDR, 0x0008, 2, txdata, size, 100);
+	if(status != HAL_OK)
+	{
+		free(rxdata);
+		return status;
+	}
+
+	// Write data length, 0x0006 Data Length Register
+	size = size >> 1;
+	size = (size >> 8 | size << 8);
+	status = HAL_I2C_Mem_Write(dev.i2cHandle, LEPTON_I2C_ADDR, 0x0006, 2, (uint8_t *)&size, 2, 100);
+
+	free(rxdata);
+	return status;
+}
+
+HAL_StatusTypeDef lepton_GetData(uint16_t *rxdata, uint16_t size)
+{
+	HAL_StatusTypeDef status;
+
+	do
+	{
+		lepton_GetReg(0x0002, rxdata);
+	}
+	while(*rxdata & 0x01);
+
+	status = HAL_I2C_Mem_Read(dev.i2cHandle, LEPTON_I2C_ADDR, 0x0006, 2, (uint8_t *)rxdata, 2, 100);
+	if( status != HAL_OK) return status;
+	if(*rxdata < size) return HAL_ERROR;
+
+	status = HAL_I2C_Master_Receive(dev.i2cHandle, LEPTON_I2C_ADDR, (uint8_t *)rxdata, size, 100);
+//	*rxdata = (*rxdata >> 8 | *rxdata << 8);
+	return status;
+}
+
+HAL_StatusTypeDef lepton_command(uint16_t cmd)
+{
 	uint16_t *rxdata = (uint16_t *)malloc(sizeof(uint16_t));
 
 	do
@@ -193,16 +244,45 @@ HAL_StatusTypeDef lepton_SetData(uint8_t *txdata, uint16_t size)
 	}
 	while(*rxdata & 0x01);
 
-//	HAL_I2C_Master_Transmit(dev.i2cHandle, LEPTON_I2C_ADDR, txdata, size, 100);
-
-	HAL_I2C_Mem_Write(dev.i2cHandle, LEPTON_I2C_ADDR, (uint8_t *)data0_reg, 2, txdata, size, 100);
-
-	// Write data length
-	HAL_I2C_Mem_Write(dev.i2cHandle, LEPTON_I2C_ADDR, (uint8_t *)datalength_reg, 2, (uint8_t *)&size, 2, 100);
-
 	free(rxdata);
-	return HAL_OK;
+	cmd = (cmd >> 8 | cmd << 8);
+	return HAL_I2C_Mem_Write(dev.i2cHandle, LEPTON_I2C_ADDR, 0x0004, 2, (uint8_t *)&cmd, 2, 100);
 }
+
+HAL_StatusTypeDef lepton_radiometry(bool rad_enabled)
+{
+	uint8_t *data = (uint8_t *)malloc(4*sizeof(uint8_t));
+	for(int i=0; i<4; i++)
+	{
+		data[i] = 0x00;
+	}
+
+	if(rad_enabled) data[1] = 0x01;
+
+	lepton_SetData(data, 4);
+	free(data);
+
+	/* 0x0E00 (RAD Module ID) + 0x10 (Command Base - Ctrl enable) + 0x01 (Set) + 0x4000 (Protection Bit) = 0x4E11 */
+	return lepton_command(0x4E11);
+}
+
+HAL_StatusTypeDef lepton_vsync(bool vsync_enabled)
+{
+	uint8_t *data = (uint8_t *)malloc(4*sizeof(uint8_t));
+		for(int i=0; i<4; i++)
+		{
+			data[i] = 0x00;
+		}
+
+		if(vsync_enabled) data[1] = 0x05;
+
+		lepton_SetData(data, 4);
+		free(data);
+
+		/* 0x0800 (OEM Module ID) + 0x54 (Command Base - Ctrl enable) + 0x01 (Set) + 0x4000 (Protection Bit) = 0x4855 */
+		return lepton_command(0x4855);
+}
+
 
 void send_byte(uint8_t data)
 {

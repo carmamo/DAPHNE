@@ -114,14 +114,14 @@ int main(void)
   while (1)
   {
 //	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-	  HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
-	  HAL_Delay(1000);
+	  //HAL_UART_Transmit(&huart2, (uint8_t *)msg, strlen(msg), HAL_MAX_DELAY);
+	  //HAL_Delay(1000);
 
 	  HAL_ADC_Start(&hadc1);
-	  while(HAL_ADC_PollForConversion(&hadc1, 100) ==  HAL_OK);
+	  while(HAL_ADC_PollForConversion(&hadc1, 100) !=  HAL_OK);
 	  adc_value = HAL_ADC_GetValue(&hadc1);
 //	  adc_value = 3.3*adc_value/4096;
-	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, map(adc_value, 70, 500, 10, 1999));
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, map(adc_value, 0, 4095, 99, 199));
 	  HAL_Delay(10);
 
     /* USER CODE END WHILE */
@@ -287,7 +287,7 @@ static void MX_TIM2_Init(void)
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 2000-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
   {
     Error_Handler();

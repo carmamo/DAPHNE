@@ -59,6 +59,7 @@ static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 void send_uart(char *string);
+uint32_t map(uint32_t IN, uint32_t INmin, uint32_t INmax, uint32_t OUTmin, uint32_t OUTmax);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -98,8 +99,12 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+  uint32_t adc_value = 0;
+  uint32_t servo = 0;
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
+
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -108,8 +113,19 @@ int main(void)
 //	  HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 //	  HAL_Delay(500);
 
-	  send_uart("Hola Mundo\r\n");
-	  HAL_Delay(2000);
+//	  send_uart("Hola Mundo\r\n");
+//	  HAL_Delay(2000);
+	  HAL_ADC_Start(&hadc1);
+	  while(HAL_ADC_PollForConversion(&hadc1, 100) == HAL_OK);
+	  adc_value = HAL_ADC_GetValue(&hadc1);
+	  servo = map(adc_value, 0, 4095, 99, 199);
+
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, servo);
+	  HAL_Delay(10);
+
+
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -355,6 +371,12 @@ void send_uart(char *string)
 {
 	HAL_UART_Transmit(&huart2, (uint8_t *)string, strlen(string), 100);
 }
+
+uint32_t map(uint32_t IN, uint32_t INmin, uint32_t INmax, uint32_t OUTmin, uint32_t OUTmax)
+{
+    return ((((IN - INmin)*(OUTmax - OUTmin))/(INmax - INmin)) + OUTmin);
+}
+
 /* USER CODE END 4 */
 
 /**
