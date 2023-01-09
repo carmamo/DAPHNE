@@ -1,8 +1,0 @@
-../Core/Src/ICI2022.c:147:6:ICI2022_Init	16	static
-../Core/Src/ICI2022.c:160:9:u8x8_stm32_gpio_and_delay	32	static
-../Core/Src/ICI2022.c:176:9:u8x8_byte_i2c	48	static
-../Core/Src/ICI2022.c:252:10:map	24	static
-../Core/Src/ICI2022.c:257:6:calc_needle	40	static
-../Core/Src/ICI2022.c:265:6:calc_rpm	24	static
-../Core/Src/ICI2022.c:277:8:radians	16	static
-../Core/Src/ICI2022.c:286:6:send_uart	24	static

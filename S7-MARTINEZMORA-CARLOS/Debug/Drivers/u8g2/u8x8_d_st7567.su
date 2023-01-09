@@ -1,9 +1,0 @@
-../Drivers/u8g2/u8x8_d_st7567.c:156:9:u8x8_d_st7567_pi_132x64	40	static
-../Drivers/u8g2/u8x8_d_st7567.c:297:9:u8x8_d_st7567_jlx12864	40	static
-../Drivers/u8g2/u8x8_d_st7567.c:460:9:u8x8_d_st7567_122x32	40	static
-../Drivers/u8g2/u8x8_d_st7567.c:624:16:u8x8_d_st7567_enh_dg128064_generic	40	static
-../Drivers/u8g2/u8x8_d_st7567.c:688:9:u8x8_d_st7567_enh_dg128064	32	static
-../Drivers/u8g2/u8x8_d_st7567.c:713:9:u8x8_d_st7567_enh_dg128064i	32	static
-../Drivers/u8g2/u8x8_d_st7567.c:802:9:u8x8_d_st7567_64x32	40	static
-../Drivers/u8g2/u8x8_d_st7567.c:940:9:u8x8_d_st7567_hem6432	40	static
-../Drivers/u8g2/u8x8_d_st7567.c:1087:9:u8x8_d_st7567_os12864	40	static
