@@ -53,16 +53,26 @@ typedef enum {
     STATE_RECORDING,
     STATE_STOP
 } AUDIO_STATE;
+
+typedef union {
+	uint32_t w;
+	char b[4];
+} _WORD;
+typedef union  {
+	uint16_t hw;
+	char b[2];
+} _HALF_WORD;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define MAX_COUNT	(40960)
 
-#define I2S_DATA_WORD_LENGTH	(32)
+#define I2S_DATA_WORD_LENGTH	(24)
 #define I2S_FRAME				(32)
 #define READ_SIZE				(128)				// bytes to read from I2S
 #define WRITE_SIZE				(READ_SIZE*I2S_FRAME/16)
+#define WRITE_SIZE_BYTES		(WRITE_SIZE*2)
 
 #define I2S_SAMPLE_FREQUENCY	(48000)
 
@@ -154,6 +164,7 @@ void pvrWriteWavFileTask(void *argument);
 FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels);
 FRESULT Format_SD (void);
 void convert_endianness(uint32_t *array, uint16_t Size);
+void convertEndian(char* sd_path, char *file_in, char *file_out);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -288,18 +299,11 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 180;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 8;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Activate the Over-Drive mode
-  */
-  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -397,7 +401,7 @@ static void MX_I2S2_Init(void)
   hi2s2.Instance = SPI2;
   hi2s2.Init.Mode = I2S_MODE_MASTER_RX;
   hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_32B;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
   hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
   hi2s2.Init.CPOL = I2S_CPOL_LOW;
@@ -434,7 +438,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE;
-  hsd.Init.ClockDiv = 0;
+  hsd.Init.ClockDiv = 2;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
@@ -556,7 +560,9 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
+	convert_endianness((uint32_t *)aud_buf, READ_SIZE);
 	osMessageQueuePut(AudioQueueHandle, aud_buf, 0L, 0);
+
 	HAL_I2S_Receive_DMA(hi2s, aud_buf, READ_SIZE);
 }
 
@@ -620,6 +626,55 @@ void convert_endianness(uint32_t *array, uint16_t Size) {
     for (int i = 0; i < Size; i++) {
         array[i] = __REV(array[i]);
     }
+}
+
+void convertEndian(char* sd_path, char *file_in, char *file_out) {
+	WAVE_HEADER wave_header;
+	FRESULT res;
+	FIL fin, fout;
+	char fn[256];
+	UINT bw, br;
+	uint16_t bitsSample;
+	uint8_t readBytes;
+	_WORD *w_data;
+	_HALF_WORD *h_data;
+
+	  //res = f_mount(&SDFatFS, SDPath, 0);
+	sprintf(fn, "%s%s", sd_path, file_in);
+	res = f_open(&fin, fn, FA_OPEN_EXISTING|FA_READ);
+	sprintf(fn, "%s%s", sd_path, file_out);
+	res = f_open(&fout, fn, FA_CREATE_ALWAYS|FA_WRITE);
+	f_read(&fin, (uint8_t*)&wave_header, sizeof(wave_header), &br);
+
+	  bitsSample= wave_header.bitsPerSample;
+	  if (bitsSample == 32) {
+		  w_data = (_WORD*)malloc(512);
+	  } else if (bitsSample == 16){
+		  h_data = (_HALF_WORD*)malloc(512);
+	  } else {
+		  return;
+	  }
+
+
+	  f_write(&fout, (uint8_t*)&wave_header, sizeof(wave_header), &bw);
+	  for (int i=0; i < wave_header.data_size; i+=512) {
+		  if (bitsSample == 32) {
+			  f_read(&fin, (uint8_t*)w_data, 512, &br);
+			  for (int i = 0; i < br/4; i++) {
+				  w_data[i].w = w_data[i].b[0] << 24 | w_data[i].b[1] << 16 | w_data[i].b[2] << 8 | w_data[i].b[3];
+			  }
+			  f_write(&fout, (uint8_t*)(w_data), br, &bw);
+		  }
+		  else {
+			  f_read(&fin, (uint8_t*)h_data, 512, &br);
+			  for (int i = 0; i < br/2; i++) {
+				  h_data[i].hw = h_data[i].b[0] << 8 | h_data[i].b[1];
+			  }
+			  f_write(&fout, (uint8_t*)(h_data), br, &bw);
+		  }
+	  }
+	  f_close(&fout);
+	  f_close(&fin);
 }
 
 /* USER CODE END 4 */
@@ -698,8 +753,8 @@ void pvrWriteAudioTask(void *argument)
 	for(;;)
 	{
 		osMessageQueueGet(AudioQueueHandle, aud_ptr, 0L, osWaitForever);
-		convert_endianness((uint32_t *)aud_ptr, READ_SIZE);
-		res = f_write(&file_ptr, aud_ptr, WRITE_SIZE, bw);
+
+		res = f_write(&file_ptr, aud_ptr, WRITE_SIZE_BYTES, bw);
 	}
   /* USER CODE END pvrWriteAudioTask */
 }
@@ -747,7 +802,7 @@ void pvrWriteWavFileTask(void *argument)
 			}
 			while(res != FR_OK);
 
-			res = fwrite_wav_header(&file_ptr, I2S_SAMPLE_FREQUENCY, I2S_DATA_WORD_LENGTH, 2);
+			res = fwrite_wav_header(&file_ptr, I2S_SAMPLE_FREQUENCY, I2S_FRAME, 2);
 
 			HAL_I2S_Receive_DMA(&hi2s2, aud_buf, READ_SIZE);
 			audio_state = STATE_RECORDING;
