@@ -54,27 +54,20 @@ typedef enum {
     STATE_STOP
 } AUDIO_STATE;
 
-typedef union {
-	uint32_t w;
-	char b[4];
-} _WORD;
-typedef union  {
-	uint16_t hw;
-	char b[2];
-} _HALF_WORD;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define MAX_COUNT	(40960)
 
-#define I2S_DATA_WORD_LENGTH	(24)
-#define I2S_FRAME				(32)
-#define READ_SIZE				(128)				// bytes to read from I2S
-#define WRITE_SIZE				(READ_SIZE*I2S_FRAME/16)
-#define WRITE_SIZE_BYTES		(WRITE_SIZE*2)
+#define I2S_DATA_WORD_LENGTH	(24)						// industry-standard 24-bit I2S
+#define I2S_FRAME				(32)						// bits per sample
+#define READ_SIZE				(256)						// samples to read from I2S
+#define BUFFER_SIZE				(READ_SIZE*I2S_FRAME/16)	// number of uint16_t elements expected
+#define WRITE_SIZE_BYTES		(BUFFER_SIZE*2)				// bytes to write
 
-#define I2S_SAMPLE_FREQUENCY	(48000)
+#define I2S_SAMPLE_FREQUENCY	(16000)						// sample frequency
 
 /* USER CODE END PD */
 
@@ -125,25 +118,25 @@ const osThreadAttr_t WAV_attributes = {
   .stack_size = 1920 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for AudioQueue */
-osMessageQueueId_t AudioQueueHandle;
-const osMessageQueueAttr_t AudioQueue_attributes = {
-  .name = "AudioQueue"
+/* Definitions for RxCommandSem */
+osSemaphoreId_t RxCommandSemHandle;
+const osSemaphoreAttr_t RxCommandSem_attributes = {
+  .name = "RxCommandSem"
 };
-/* Definitions for RxSem */
-osSemaphoreId_t RxSemHandle;
-const osSemaphoreAttr_t RxSem_attributes = {
-  .name = "RxSem"
+/* Definitions for RxAudioSem */
+osSemaphoreId_t RxAudioSemHandle;
+const osSemaphoreAttr_t RxAudioSem_attributes = {
+  .name = "RxAudioSem"
 };
 /* USER CODE BEGIN PV */
 static AUDIO_STATE audio_state = CONNECTING;
 FRESULT res;
 FIL file_ptr;
-static uint16_t aud_buf[WRITE_SIZE];
 
+uint16_t aud_buf[2*BUFFER_SIZE];			// Double buffering
+static volatile int16_t *BufPtr;
 
 static char buf[4];
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -164,7 +157,6 @@ void pvrWriteWavFileTask(void *argument);
 FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels);
 FRESULT Format_SD (void);
 void convert_endianness(uint32_t *array, uint16_t Size);
-void convertEndian(char* sd_path, char *file_in, char *file_out);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -219,22 +211,23 @@ int main(void)
   /* USER CODE END RTOS_MUTEX */
 
   /* Create the semaphores(s) */
-  /* creation of RxSem */
-  RxSemHandle = osSemaphoreNew(1, 1, &RxSem_attributes);
+  /* creation of RxCommandSem */
+  RxCommandSemHandle = osSemaphoreNew(1, 1, &RxCommandSem_attributes);
+
+  /* creation of RxAudioSem */
+  RxAudioSemHandle = osSemaphoreNew(1, 1, &RxAudioSem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
-  RxSemHandle = osSemaphoreNew(1, 0, &RxSem_attributes);
+  RxCommandSemHandle = osSemaphoreNew(1, 0, &RxCommandSem_attributes);
+
+  RxAudioSemHandle = osSemaphoreNew(1, 0, &RxAudioSem_attributes);
 
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
-
-  /* Create the queue(s) */
-  /* creation of AudioQueue */
-  AudioQueueHandle = osMessageQueueNew (8, sizeof(aud_buf), &AudioQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -403,7 +396,7 @@ static void MX_I2S2_Init(void)
   hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
   hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
   hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_48K;
+  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_16K;
   hi2s2.Init.CPOL = I2S_CPOL_LOW;
   hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
   hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
@@ -438,7 +431,7 @@ static void MX_SDIO_SD_Init(void)
   hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
   hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
   hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_ENABLE;
-  hsd.Init.ClockDiv = 2;
+  hsd.Init.ClockDiv = 0;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
@@ -554,16 +547,20 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-	osSemaphoreRelease(RxSemHandle);
+	osSemaphoreRelease(RxCommandSemHandle);
 	HAL_UARTEx_ReceiveToIdle_IT(huart, (uint8_t *)buf, 4);
+}
+
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+	BufPtr = aud_buf;
+	osSemaphoreRelease(RxAudioSemHandle);
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-	convert_endianness((uint32_t *)aud_buf, READ_SIZE);
-	osMessageQueuePut(AudioQueueHandle, aud_buf, 0L, 0);
-
-	HAL_I2S_Receive_DMA(hi2s, aud_buf, READ_SIZE);
+	BufPtr = &aud_buf[BUFFER_SIZE];
+	osSemaphoreRelease(RxAudioSemHandle);
 }
 
 FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample, uint8_t channels) {
@@ -577,12 +574,12 @@ FRESULT fwrite_wav_header(FIL* file, uint16_t sampleRate, uint8_t bitsPerSample,
 	wave_header.fmt[0] = 'f';wave_header.fmt[1] = 'm';
 	wave_header.fmt[2] = 't';wave_header.fmt[3] = ' ';
 	wave_header.fmt_size = 16;
-	wave_header.format = 1; // PCM
-	wave_header.channels = channels; // channels
-	wave_header.sampleRate=sampleRate;  // sample rate
+	wave_header.format = 1; 								// PCM
+	wave_header.channels = channels; 						// channels
+	wave_header.sampleRate=sampleRate;  					// sample rate
 	wave_header.rbc = sampleRate*bitsPerSample*channels/8;
 	wave_header.bc =  bitsPerSample*channels/8;
-	wave_header.bitsPerSample = bitsPerSample; //bitsPerSample
+	wave_header.bitsPerSample = bitsPerSample; 				// bitsPerSample
 	wave_header.data[0] = 'd'; wave_header.data[1] = 'a';
 	wave_header.data[2] = 't'; wave_header.data[3] = 'a';
 	wave_header.data_size = 0;
@@ -622,59 +619,18 @@ FRESULT Format_SD (void)
 	return fresult;
 }
 
+/*
+This function takes in a pointer to an array of 32-bit unsigned integers
+and a 16-bit unsigned integer (Size) as input.
+It converts the endianness of each element in the array using the __REV
+intrinsic function.
+The for loop iterates through each element in the array, and at each iteration,
+the endianness of the current element is converted.
+*/
 void convert_endianness(uint32_t *array, uint16_t Size) {
     for (int i = 0; i < Size; i++) {
         array[i] = __REV(array[i]);
     }
-}
-
-void convertEndian(char* sd_path, char *file_in, char *file_out) {
-	WAVE_HEADER wave_header;
-	FRESULT res;
-	FIL fin, fout;
-	char fn[256];
-	UINT bw, br;
-	uint16_t bitsSample;
-	uint8_t readBytes;
-	_WORD *w_data;
-	_HALF_WORD *h_data;
-
-	  //res = f_mount(&SDFatFS, SDPath, 0);
-	sprintf(fn, "%s%s", sd_path, file_in);
-	res = f_open(&fin, fn, FA_OPEN_EXISTING|FA_READ);
-	sprintf(fn, "%s%s", sd_path, file_out);
-	res = f_open(&fout, fn, FA_CREATE_ALWAYS|FA_WRITE);
-	f_read(&fin, (uint8_t*)&wave_header, sizeof(wave_header), &br);
-
-	  bitsSample= wave_header.bitsPerSample;
-	  if (bitsSample == 32) {
-		  w_data = (_WORD*)malloc(512);
-	  } else if (bitsSample == 16){
-		  h_data = (_HALF_WORD*)malloc(512);
-	  } else {
-		  return;
-	  }
-
-
-	  f_write(&fout, (uint8_t*)&wave_header, sizeof(wave_header), &bw);
-	  for (int i=0; i < wave_header.data_size; i+=512) {
-		  if (bitsSample == 32) {
-			  f_read(&fin, (uint8_t*)w_data, 512, &br);
-			  for (int i = 0; i < br/4; i++) {
-				  w_data[i].w = w_data[i].b[0] << 24 | w_data[i].b[1] << 16 | w_data[i].b[2] << 8 | w_data[i].b[3];
-			  }
-			  f_write(&fout, (uint8_t*)(w_data), br, &bw);
-		  }
-		  else {
-			  f_read(&fin, (uint8_t*)h_data, 512, &br);
-			  for (int i = 0; i < br/2; i++) {
-				  h_data[i].hw = h_data[i].b[0] << 8 | h_data[i].b[1];
-			  }
-			  f_write(&fout, (uint8_t*)(h_data), br, &bw);
-		  }
-	  }
-	  f_close(&fout);
-	  f_close(&fin);
 }
 
 /* USER CODE END 4 */
@@ -699,7 +655,24 @@ void StartDefaultTask(void *argument)
 
 /* USER CODE BEGIN Header_pvrCommandReceiveTask */
 /**
-* @brief Function implementing the UART thread.
+* @brief
+* This function is a task that is responsible for receiving commands from the UART
+* interface.
+* It first initializes the UART receive interrupt using the HAL_UARTEx_ReceiveToIdle_IT()
+* function.
+* The task enters an infinite loop, where it waits for the RxCommandSemHandle semaphore
+* to be acquired.
+* Once the semaphore is acquired, the task checks the first byte of the received buffer
+* (buf) to determine which command was received.
+*
+* 	If the first byte is 'G', it checks if the audio state is in the IDLE state, and if
+* 	so, it resumes the WAVHandle thread.
+* 	If the first byte is 'P', it checks if the audio state is in the RECORDING state, and
+* 	if so, it sets the audio state to STOP.
+* 	If the first byte is '.', it sets the audio state to CONNECTING.
+* 	If the first byte is '+', it sets the audio state to IDLE.
+* 	If the first byte is any other value, the task does nothing.
+*
 * @param argument: Not used
 * @retval None
 */
@@ -712,14 +685,20 @@ void pvrCommandReceiveTask(void *argument)
 	for(;;)
 	{
 
-		osSemaphoreAcquire(RxSemHandle, osWaitForever);
+		// Wait for semaphore to be released, data has been received on the UART.
+		osSemaphoreAcquire(RxCommandSemHandle, osWaitForever);
 
+		// Check the first byte of the received data to determine the command.
 		switch(buf[0])
 		{
 		case 'G':
+			// If the command is 'G', and the audio state is currently idle,
+			// resume the WAV recording task.
 			if(audio_state == STATE_IDLE) osThreadResume(WAVHandle);
 			break;
 		case 'P':
+			// If the command is 'P', and the audio state is currently recording,
+			// change the state to stop recording.
 			while(audio_state == STATE_START_RECORDING) osDelay(500);
 			if(audio_state == STATE_RECORDING) audio_state = STATE_STOP;
 			break;
@@ -730,6 +709,7 @@ void pvrCommandReceiveTask(void *argument)
 			audio_state = STATE_IDLE;
 			break;
 		default:
+			// If the command is not recognized, do nothing.
 			break;
 		}
 	}
@@ -747,14 +727,14 @@ void pvrWriteAudioTask(void *argument)
 {
   /* USER CODE BEGIN pvrWriteAudioTask */
 	static UINT *bw;
-	static uint16_t aud_ptr[WRITE_SIZE];
 
 	/* Infinite loop */
 	for(;;)
 	{
-		osMessageQueueGet(AudioQueueHandle, aud_ptr, 0L, osWaitForever);
+		osSemaphoreAcquire(RxAudioSemHandle, osWaitForever);
 
-		res = f_write(&file_ptr, aud_ptr, WRITE_SIZE_BYTES, bw);
+		convert_endianness((uint32_t *)BufPtr, READ_SIZE);
+		res = f_write(&file_ptr, BufPtr, WRITE_SIZE_BYTES, bw);
 	}
   /* USER CODE END pvrWriteAudioTask */
 }
@@ -769,13 +749,16 @@ void pvrWriteAudioTask(void *argument)
 void pvrWriteWavFileTask(void *argument)
 {
   /* USER CODE BEGIN pvrWriteWavFileTask */
-	static uint16_t count = 0;
-	uint32_t filesize;
-	uint32_t data_len;
-	uint32_t total_len;
-	static char filename[256];
-	static UINT *bw;
 
+	// Initialize variables
+	static uint16_t count = 0;	 	// counter for creating unique filenames
+	uint32_t filesize;				// variable to store the size of the recorded file
+	uint32_t data_len;				// variable to store the length of the data in the file
+	uint32_t total_len;				// variable to store the total length of the file (including header)
+	static char filename[256];		// variable to store the filename of the recorded file
+	static UINT *bw;				// variable for fwrite function
+
+	// Mount the SD card and format it if necessary
 	do
 	{
 		res = f_mount(&SDFatFS, SDPath, 1);
@@ -794,41 +777,60 @@ void pvrWriteWavFileTask(void *argument)
 		{
 		case STATE_START_RECORDING:
 
+			// Create a unique filename for the recorded file
 			sprintf(filename, "%saud_%03d.wav", SDPath, count++);
 
+			// Open the file in write mode
 			do
 			{
 				res = f_open(&file_ptr, filename, FA_CREATE_ALWAYS|FA_WRITE);
 			}
 			while(res != FR_OK);
 
+			// Write the WAV header to the file
 			res = fwrite_wav_header(&file_ptr, I2S_SAMPLE_FREQUENCY, I2S_FRAME, 2);
 
-			HAL_I2S_Receive_DMA(&hi2s2, aud_buf, READ_SIZE);
+			// Start recording audio using DMA
+			HAL_I2S_Receive_DMA(&hi2s2, aud_buf, 2*READ_SIZE);
 			audio_state = STATE_RECORDING;
 			break;
 
 		case STATE_RECORDING:
+
+			// Wait for 50ms before checking the state again
 			osDelay(50);
 			break;
 
 		case STATE_STOP:
-			HAL_I2S_DMAStop(&hi2s2);
-			while(osMessageQueueGetCount(AudioQueueHandle)) osDelay(1000);
 
+			// Stop the DMA recording
+			HAL_I2S_DMAStop(&hi2s2);
+
+			// Wait for any remaining audio data to be processed
+			while(osSemaphoreGetCount(RxAudioSemHandle)) osDelay(250);
+
+			// Get the size of the file and calculate the length of the data and total length
 			filesize = f_size(&file_ptr);
 			data_len = filesize - 44;
 			total_len = filesize - 8;
+
+			// Update the WAV header with the correct data length and total length
 			f_lseek(&file_ptr, 4);
 			f_write(&file_ptr, (uint8_t*)&total_len, 4, bw);
 			f_lseek(&file_ptr, 40);
 			f_write(&file_ptr, (uint8_t*)&data_len, 4, bw);
+
+			// Close the file
 			f_close(&file_ptr);
 
+
+			// Set the audio state to idle
 			audio_state = STATE_IDLE;
 			break;
 
 		case STATE_IDLE:
+
+			// Suspend the task until the next recording is started
 			osThreadSuspend(WAVHandle);
 			audio_state = STATE_START_RECORDING;
 			break;

@@ -92,8 +92,9 @@ void print_image_binary_background(void)
 
 void transfer(void)
 {
-	//HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
-	//HAL_SPI_Receive(dev.spiHandle, lepton_frame_packet, FRAME_SIZE,100);
+	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
+//	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, FRAME_SIZE);
+	HAL_SPI_Receive(dev.spiHandle, lepton_frame_packet, FRAME_SIZE,1000);
 	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_SET);
 
 	if((lepton_frame_packet[0] & 0xf) != 0x0f)
@@ -132,7 +133,7 @@ void transfer(void)
 		if(frame_number == 59)
 		{
 			frame_complete = 1;
-			last_frame_number = 0;
+//			last_frame_number = 0;
 		}
 	}
 
@@ -149,10 +150,7 @@ void transfer(void)
 		if(new_frame)
 		{
 			frame_counter++;
-			if(frame_counter%18 == 0)
-			{
-				image_state = 0;
-			}
+			image_state = 0;
 			new_frame = 0;
 		}
 		frame_complete = 0;

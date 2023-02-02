@@ -25,7 +25,8 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "CANSPI.h"
-
+#include "MCP2515.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -391,13 +392,43 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if (GPIO_Pin == Ican1_Pin || GPIO_Pin==Ican2_Pin) {
-		osSemaphoreRelease(CAN_semHandle); //, &priority);
+	if (GPIO_Pin == Ican1_Pin)
+	{
+
+		if((MCP2515_ReadByte(CAN1, MCP2515_CANINTF) & 0x1C) != 0)
+		{
+			// Poner aqui un punto de ruptura para ver cuando se recibe una interrupcion por
+			// transmision en el CAN1
+			osSemaphoreRelease(CAN_semHandle);
+		}
+		if((MCP2515_ReadByte(CAN1, MCP2515_CANINTF) & 0x03) != 0)
+		{
+			// Poner aqui un punto de ruptura para ver cuando se recibe una interrupcion por
+			// recepcion en el CAN1
+			__NOP();
+		}
 	}
+	if (GPIO_Pin==Ican2_Pin)
+	{
+
+		if((MCP2515_ReadByte(CAN2, MCP2515_CANINTF) & 0x1C) != 0)
+		{
+			// Poner aqui un punto de ruptura para ver cuando se recibe una interrupcion por
+			// transmision en el CAN2
+			osSemaphoreRelease(CAN_semHandle);
+		}
+		if((MCP2515_ReadByte(CAN2, MCP2515_CANINTF) & 0x03) != 0)
+		{
+			// Poner aqui un punto de ruptura para ver cuando se recibe una interrupcion por
+			// recepcion en el CAN2
+			__NOP();
+		}
+	}
+
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-	osSemaphoreRelease(uart_tx_semHandle); //, &priority);
+	osSemaphoreRelease(uart_tx_semHandle);
 }
 /* USER CODE END 4 */
 
@@ -428,123 +459,124 @@ void StartDefaultTask(void *argument)
 /* USER CODE END Header_can_task */
 void can_task(void *argument)
 {
-  /* USER CODE BEGIN can_task */
+	/* USER CODE BEGIN can_task */
 	uint8_t tx_buffer[49], i=0;
 
 	if( CANSPI_Initialize(CAN1)) {
-		osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-		sprintf(tx_buffer, "CAN1 initialized OK\n\r");
-		HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-		dSTANDARD_CAN_MSG_ID_2_0B;
-		txMessage.frame.id = 15;
-		txMessage.frame.dlc = 8;
-		txMessage.frame.data0 = 1;
-		txMessage.frame.data1 = 2;
-		txMessage.frame.data2 = 3;
-		txMessage.frame.data3 = 4;
-		txMessage.frame.data4 = 5;
-		txMessage.frame.data5 = 6;
-		txMessage.frame.data6 = 7;
-		txMessage.frame.data7 = 8;
-		CANSPI_Transmit(CAN1, &txMessage);
-		osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-		sprintf(tx_buffer, "CAN1 sending Msg...\n\r");
-		HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-	}
-	else
-	{
-		osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-		sprintf(tx_buffer, "Error CAN1 initiali\n\r");
-		HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-	}
-	if (CANSPI_Initialize(CAN2)) {
-		osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-		sprintf(tx_buffer, "CAN2 initialized OK\n\r");
-		HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-		dSTANDARD_CAN_MSG_ID_2_0B;
-		txMessage.frame.id = 25;
-		txMessage.frame.dlc = 8;
-		txMessage.frame.data0 = 8;
-		txMessage.frame.data1 = 7;
-		txMessage.frame.data2 = 6;
-		txMessage.frame.data3 = 5;
-		txMessage.frame.data4 = 4;
-		txMessage.frame.data5 = 3;
-		txMessage.frame.data6 = 2;
-		txMessage.frame.data7 = 1;
-		CANSPI_Transmit(CAN2, &txMessage);
-		osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-		sprintf(tx_buffer, "CAN2 sending Msg...\n\r");
-		HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-	}
-	else
-	{
-		osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-		sprintf(tx_buffer, "Error CAN2 initiali\n\r");
-		HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-
-	}
-	/* Infinite loop */
-	for(;;)
-	{
-		osSemaphoreAcquire(CAN_semHandle, portMAX_DELAY);
-		if(CANSPI_Receive(CAN1, &rxMessage))
-		{
-			// Coger el semáforo de envío de trama por la UART
-			osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-			sprintf(tx_buffer, "CAN1 RX: id= %2d, dlc= %1d, datos= %1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d\n\r",
-					rxMessage.frame.id, rxMessage.frame.dlc,rxMessage.frame.data0,rxMessage.frame.data1,
-					rxMessage.frame.data2,rxMessage.frame.data3,rxMessage.frame.data4,rxMessage.frame.data5,
-					rxMessage.frame.data6,rxMessage.frame.data7);
-			HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-
-			txMessage.frame.idType = dSTANDARD_CAN_MSG_ID_2_0B;
-			txMessage.frame.id = 15;
-			txMessage.frame.dlc = 8;
-			txMessage.frame.data0 = 1;
-			txMessage.frame.data1 = 2;
-			txMessage.frame.data2 = 3;
-			txMessage.frame.data3 = 4;
-			txMessage.frame.data4 = 5;
-			txMessage.frame.data5 = 6;
-			txMessage.frame.data6 = 7;
-			txMessage.frame.data7 = 8;
-			CANSPI_Transmit(CAN1, &txMessage);
-			osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-			for (i=0; i<49; i++) tx_buffer[i]=0;
-			sprintf(tx_buffer, "CAN1 sending Msg...\n\r");
-			HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-		} else
-			if(CANSPI_Receive(CAN2, &rxMessage))
-			{
-				// Coger el semáforo de envío de trama por la UART
 				osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-				sprintf(tx_buffer, "CAN2 RX: id= %2d, dlc= %1d, datos= %1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d\n\r",
-						rxMessage.frame.id, rxMessage.frame.dlc,rxMessage.frame.data0,rxMessage.frame.data1,
-						rxMessage.frame.data2,rxMessage.frame.data3,rxMessage.frame.data4,rxMessage.frame.data5,
-						rxMessage.frame.data6,rxMessage.frame.data7);
+				sprintf(tx_buffer, "CAN1 initialized OK\n\r");
 				HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-				CANSPI_CL_Flag_Int(CAN2);
-				txMessage.frame.idType = dSTANDARD_CAN_MSG_ID_2_0B;
-				txMessage.frame.id = 25;
-				txMessage.frame.dlc = 8;
-				txMessage.frame.data0 = 8;
-				txMessage.frame.data1 = 7;
-				txMessage.frame.data2 = 6;
-				txMessage.frame.data3 = 5;
-				txMessage.frame.data4 = 4;
-				txMessage.frame.data5 = 3;
-				txMessage.frame.data6 = 2;
-				txMessage.frame.data7 = 1;
-				CANSPI_Transmit(CAN2, &txMessage);
+				dSTANDARD_CAN_MSG_ID_2_0B;
+						    	txMessage.frame.id = 15;
+						    	txMessage.frame.dlc = 8;
+						    	txMessage.frame.data0 = 1;
+						    	txMessage.frame.data1 = 2;
+						    	txMessage.frame.data2 = 3;
+						    	txMessage.frame.data3 = 4;
+						    	txMessage.frame.data4 = 5;
+						    	txMessage.frame.data5 = 6;
+						    	txMessage.frame.data6 = 7;
+						    	txMessage.frame.data7 = 8;
+						    	CANSPI_Transmit(CAN1, &txMessage);
+								osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+								sprintf(tx_buffer, "CAN1 sending Msg...\n\r");
+								HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+		  }
+		  else
+		  {
 				osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
-				for (i=0; i<49; i++) tx_buffer[i]=0;
-				sprintf(tx_buffer, "CAN2 sending Msg...\n\r");
+				sprintf(tx_buffer, "Error CAN1 initiali\n\r");
 				HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
-			}
-		osDelay(1000);
-	}
-  /* USER CODE END can_task */
+		  }
+		  if (CANSPI_Initialize(CAN2)) {
+				osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+				sprintf(tx_buffer, "CAN2 initialized OK\n\r");
+				HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+				dSTANDARD_CAN_MSG_ID_2_0B;
+						    	txMessage.frame.id = 25;
+						    	txMessage.frame.dlc = 8;
+						    	txMessage.frame.data0 = 8;
+						    	txMessage.frame.data1 = 7;
+						    	txMessage.frame.data2 = 6;
+						    	txMessage.frame.data3 = 5;
+						    	txMessage.frame.data4 = 4;
+						    	txMessage.frame.data5 = 3;
+						    	txMessage.frame.data6 = 2;
+						    	txMessage.frame.data7 = 1;
+						    	CANSPI_Transmit(CAN2, &txMessage);
+								osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+								sprintf(tx_buffer, "CAN2 sending Msg...\n\r");
+								HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+		  }
+		  else
+		  {
+				osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+				sprintf(tx_buffer, "Error CAN2 initiali\n\r");
+				HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+
+		  }
+
+		  /* Infinite loop */
+		  for(;;)
+		  {
+				osSemaphoreAcquire(CAN_semHandle, portMAX_DELAY);
+			    if(CANSPI_Receive(CAN1, &rxMessage))
+			    {
+					// Coger el semáforo de envío de trama por la UART
+					osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+					sprintf(tx_buffer, "CAN1 RX: id= %2d, dlc= %1d, datos= %1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d\n\r",
+							rxMessage.frame.id, rxMessage.frame.dlc,rxMessage.frame.data0,rxMessage.frame.data1,
+							rxMessage.frame.data2,rxMessage.frame.data3,rxMessage.frame.data4,rxMessage.frame.data5,
+							rxMessage.frame.data6,rxMessage.frame.data7);
+					HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+					CANSPI_CL_Flag_Int(CAN1);
+			    	txMessage.frame.idType = dSTANDARD_CAN_MSG_ID_2_0B;
+			    	txMessage.frame.id = 15;
+			    	txMessage.frame.dlc = 8;
+			    	txMessage.frame.data0 = 1;
+			    	txMessage.frame.data1 = 2;
+			    	txMessage.frame.data2 = 3;
+			    	txMessage.frame.data3 = 4;
+			    	txMessage.frame.data4 = 5;
+			    	txMessage.frame.data5 = 6;
+			    	txMessage.frame.data6 = 7;
+			    	txMessage.frame.data7 = 8;
+			    	CANSPI_Transmit(CAN1, &txMessage);
+					osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+			    	for (i=0; i<49; i++) tx_buffer[i]=0;
+					sprintf(tx_buffer, "CAN1 sending Msg...\n\r");
+					HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+			    } else
+			    if(CANSPI_Receive(CAN2, &rxMessage))
+			    {
+					// Coger el semáforo de envío de trama por la UART
+					osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+					sprintf(tx_buffer, "CAN2 RX: id= %2d, dlc= %1d, datos= %1d,%1d,%1d,%1d,%1d,%1d,%1d,%1d\n\r",
+							rxMessage.frame.id, rxMessage.frame.dlc,rxMessage.frame.data0,rxMessage.frame.data1,
+							rxMessage.frame.data2,rxMessage.frame.data3,rxMessage.frame.data4,rxMessage.frame.data5,
+							rxMessage.frame.data6,rxMessage.frame.data7);
+					HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+					CANSPI_CL_Flag_Int(CAN2);
+			    	txMessage.frame.idType = dSTANDARD_CAN_MSG_ID_2_0B;
+			    	txMessage.frame.id = 25;
+			    	txMessage.frame.dlc = 8;
+			    	txMessage.frame.data0 = 8;
+			    	txMessage.frame.data1 = 7;
+			    	txMessage.frame.data2 = 6;
+			    	txMessage.frame.data3 = 5;
+			    	txMessage.frame.data4 = 4;
+			    	txMessage.frame.data5 = 3;
+			    	txMessage.frame.data6 = 2;
+			    	txMessage.frame.data7 = 1;
+			    	CANSPI_Transmit(CAN2, &txMessage);
+					osSemaphoreAcquire(uart_tx_semHandle, portMAX_DELAY);
+			    	for (i=0; i<49; i++) tx_buffer[i]=0;
+					sprintf(tx_buffer, "CAN2 sending Msg...\n\r");
+					HAL_UART_Transmit_IT(&huart2, tx_buffer, sizeof(tx_buffer));
+			    }
+			    osDelay(1000);
+		  }
+	/* USER CODE END can_task */
 }
 
 /**
