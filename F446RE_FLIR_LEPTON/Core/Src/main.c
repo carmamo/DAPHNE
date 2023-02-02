@@ -45,18 +45,17 @@
 I2C_HandleTypeDef hi2c1;
 
 SPI_HandleTypeDef hspi1;
-DMA_HandleTypeDef hdma_spi1_rx;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+extern int image_state;
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
@@ -97,7 +96,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   MX_SPI1_Init();
@@ -109,11 +107,11 @@ int main(void)
   HAL_Delay(100);
   HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_RESET);
-  HAL_Delay(1000);
-  HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_SET);
   HAL_Delay(5000);
-  lepton_radiometry(true);
-  lepton_vsync(true);
+  HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_SET);
+
+//  lepton_radiometry(true);
+//  lepton_vsync(true);
 
   /* USER CODE END 2 */
 
@@ -121,8 +119,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  print_image_binary_background();
-	  //transfer();
+	  if(image_state == 0)
+	  {
+		  while(image_state != -1) print_image_binary_background();
+	  }
+
+	  transfer();
 
     /* USER CODE END WHILE */
 
@@ -154,11 +156,18 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 160;
+  RCC_OscInitStruct.PLL.PLLN = 180;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -284,22 +293,6 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
-  * Enable DMA controller clock
-  */
-static void MX_DMA_Init(void)
-{
-
-  /* DMA controller clock enable */
-  __HAL_RCC_DMA2_CLK_ENABLE();
-
-  /* DMA interrupt init */
-  /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -346,10 +339,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(SPI1_CS_GPIO_Port, &GPIO_InitStruct);
 
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 1);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
 }
 
 /* USER CODE BEGIN 4 */
@@ -358,15 +347,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if (GPIO_Pin == GPIO_PIN_12)
 	{
 		HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-		lepton_getPacket();
-		//transfer();
+//		lepton_getPacket();
+//		transfer();
 	}
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
 	transfer();
-	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+//	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 /* USER CODE END 4 */
 

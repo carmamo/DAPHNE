@@ -41,6 +41,7 @@ extern "C" {
 #define CSR_8				0x12			// Clock Setting Register 8, NADC Values
 #define CSR_9				0x13			// Clock Setting Register 9, MADC Values
 #define AOSR				0x14			// ADC Oversampling Register
+#define DIN_CR				0x36			// DIN Function Control Register
 #define PBCR				0x3d			// ADC Signal Processing Block Control Register
 #define CH_SETUP			0x51			// ADC Channel Setup Register
 #define CH_GAIN				0x52			// ADC Fine Gain Adjust Register
@@ -52,6 +53,7 @@ extern "C" {
 #define POW_TUN				0x3d			// ADC Power Tune Configuration Register
 #define AIQC_CR				0x47			// Analog Input Quick Charging Configuration Register
 #define REF_POW_CR			0x7b			// Reference Power-up Configuration Register
+#define MICBIAS_CR			0x33			// MICBIAS Configuration Register
 #define LROUTE_PCR			0x34			// Left MICPGA Positive Terminal Input Routing Configuration Register
 #define LROUTE_NCR			0x36			// Left MICPGA Negative Terminal Input Routing Configuration Register
 #define RROUTE_PCR			0x37			// Right MICPGA Positive Terminal Input Routing Configuration Register

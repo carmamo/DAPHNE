@@ -61,6 +61,11 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
 	status = AIC3254_SendCommand(dev, AOSR, 0x80);
 	if(status != HAL_OK) exit(1);
 
+	/* Disable DIN Pin */
+
+	status = AIC3254_SendCommand(dev, DIN_CR, 0x02);
+	if(status != HAL_OK) exit(1);
+
 	/* Select ADC PRB_R1 */
 
 	status = AIC3254_SendCommand(dev, PBCR, 0x01);
@@ -93,6 +98,11 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
 	status = AIC3254_SendCommand(dev, POW_TUN, 0x00);
 	if(status != HAL_OK) exit(1);
 
+	/* Set MICBIAS to LDOIN - 3.3V */
+
+	status = AIC3254_SendCommand(dev, MICBIAS_CR, 0x78);
+	if(status != HAL_OK) exit(1);
+
 	/* Set MicPGA startup delay to 3.1ms */
 
 	status = AIC3254_SendCommand(dev, AIQC_CR, 0x32);
@@ -103,12 +113,12 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
 	status = AIC3254_SendCommand(dev, REF_POW_CR, 0x01);
 	if(status != HAL_OK) exit(1);
 
-	/* Route IN1L to LEFT_P with 20K input impedance */
+	/* Route IN2L to LEFT_P with 20K input impedance */
 
-	status = AIC3254_SendCommand(dev, LROUTE_PCR, 0x80);
+	status = AIC3254_SendCommand(dev, LROUTE_PCR, 0x20);
 	if(status != HAL_OK) exit(1);
 
-	/* Route Common Mode to LEFT_M with impedance of 20K */
+	/* Route CM1L to LEFT_M with impedance of 20K */
 
 	status = AIC3254_SendCommand(dev, LROUTE_NCR, 0x80);
 	if(status != HAL_OK) exit(1);
@@ -118,7 +128,7 @@ uint8_t AIC3254_Init(AIC3254_t *dev, I2C_HandleTypeDef *i2cHandle) {
 	status = AIC3254_SendCommand(dev, RROUTE_PCR, 0x80);
 	if(status != HAL_OK) exit(1);
 
-	/* Route Common Mode to Right_M with impedance of 20K */
+	/* Route CM1R to Right_M with impedance of 20K */
 
 	status = AIC3254_SendCommand(dev, RROUTE_NCR, 0x80);
 	if(status != HAL_OK) exit(1);
