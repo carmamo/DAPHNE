@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "lepton.h"
 #include "arm_math.h"
+#include <stdbool.h>
 
 /* USER CODE END Includes */
 
@@ -34,6 +35,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define MEMPOOL_OBJECTS (4)
+#define FRAME_SIZE_U8	(9840)
+#define MEMPOOL_SIZE	(39360)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,19 +54,12 @@ DMA_HandleTypeDef hdma_spi1_tx;
 
 UART_HandleTypeDef huart2;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for uartTx */
+osThreadId_t uartTxHandle;
+const osThreadAttr_t uartTx_attributes = {
+  .name = "uartTx",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for uart_tx */
-osThreadId_t uart_txHandle;
-const osThreadAttr_t uart_tx_attributes = {
-  .name = "uart_tx",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
 };
 /* Definitions for VoSPI */
 osThreadId_t VoSPIHandle;
@@ -73,15 +70,19 @@ const osThreadAttr_t VoSPI_attributes = {
 };
 /* USER CODE BEGIN PV */
 
-/* Definitions for RxCommandSem */
+lepton_frame MemoryBlock[4];
+
+/* Definitions for FramePool */
 
 osMemoryPoolId_t FramePoolHandle;
 const osMemoryPoolAttr_t FramePool_attributes = {
-  .name = "FramePool"
+  .name = "FramePool",
+  .mp_mem = MemoryBlock,
+  .mp_size = MEMPOOL_SIZE
 };
 
-MemPoolBlock_t *current_frame;
-MemPoolBlock_t *complete_frame;
+lepton_frame *current_frame;
+lepton_frame *complete_frame;
 
 /* USER CODE END PV */
 
@@ -92,7 +93,6 @@ static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
-void StartDefaultTask(void *argument);
 void prvPrintImageTask(void *argument);
 void prvCaptureFramesTask(void *argument);
 
@@ -138,6 +138,15 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  lepton_Init(&hi2c1, &hspi1, &huart2, SPI1_CS_GPIO_Port, SPI1_CS_Pin);
+
+
+  HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_RESET);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_RESET);
+  HAL_Delay(5000);
+  HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_SET);
 
   /* USER CODE END 2 */
 
@@ -145,7 +154,7 @@ int main(void)
   osKernelInitialize();
 
   /* USER CODE BEGIN RTOS_MUTEX */
-  FramePoolHandle = osMemoryPoolNew(4, sizeof(lepton_frame), &FramePool_attributes);
+  FramePoolHandle = osMemoryPoolNew(MEMPOOL_OBJECTS, FRAME_SIZE_U8, &FramePool_attributes);
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
@@ -162,11 +171,8 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* creation of uart_tx */
-  uart_txHandle = osThreadNew(prvPrintImageTask, NULL, &uart_tx_attributes);
+  /* creation of uartTx */
+  uartTxHandle = osThreadNew(prvPrintImageTask, NULL, &uartTx_attributes);
 
   /* creation of VoSPI */
   VoSPIHandle = osThreadNew(prvCaptureFramesTask, NULL, &VoSPI_attributes);
@@ -206,19 +212,18 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 160;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -232,10 +237,10 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -329,13 +334,13 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 2625000;
+  huart2.Init.BaudRate = 2000000;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
   huart2.Init.Mode = UART_MODE_TX_RX;
   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_8;
   if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler();
@@ -384,7 +389,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, FLIR_PWR_DWN_L_Pin|FLIR_RESET_L_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -419,38 +424,50 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+ * @fn void HAL_GPIO_EXTI_Callback(uint16_t)
+ * @brief
+ * This function is a callback routine called when an external
+ * interrupt is generated by a specified GPIO pin.
+ *
+ * @param GPIO_Pin Specifies the pin number for the interrupt line.
+ * The function checks if the interrupt was generated by the specified
+ * FLIR_VSYNC_Pin and if so, allocates memory from the FramePoolHandle
+ * memory pool. If memory allocation is successful, it starts a DMA
+ * transfer to receive data from the hspi1 peripheral and disables the
+ * EXTI15_10_IRQn interrupt.
+ */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if (GPIO_Pin == FLIR_VSYNC_Pin)
 	{
-
-		HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+		current_frame = (lepton_frame *)osMemoryPoolAlloc(FramePoolHandle, 0U);
+		if(current_frame != NULL)
+		{
+			HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame, FRAME_SIZE_U8);
+			HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+		}
 	}
 }
+/**
+ * @fn void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef*)
+ * @brief
+ *
+ * @param hspi
+ */
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-
-//	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+	if((current_frame->y16[0].header[0] & 0xf00) != 0x0f00)
+	{
+		osThreadFlagsSet(VoSPIHandle, 0x1U);
+	}
+	else
+	{
+		osMemoryPoolFree(FramePoolHandle, current_frame);
+		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+	}
 }
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END 5 */
-}
 
 /* USER CODE BEGIN Header_prvPrintImageTask */
 /**
@@ -461,13 +478,28 @@ void StartDefaultTask(void *argument)
 /* USER CODE END Header_prvPrintImageTask */
 void prvPrintImageTask(void *argument)
 {
-  /* USER CODE BEGIN prvPrintImageTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END prvPrintImageTask */
+  /* USER CODE BEGIN 5 */
+	/* Infinite loop */
+	for(;;)
+	{
+		/* Wait for completed frame */
+		osThreadFlagsWait(0x1U, osFlagsWaitAny, osWaitForever);
+
+		/* Transmit header */
+		send_byte(0xDE);
+		send_byte(0xAD);
+		send_byte(0xBE);
+		send_byte(0xEF);
+
+		/* Transmit frame */
+		HAL_UART_Transmit_IT(&huart2, (uint8_t *)complete_frame, FRAME_SIZE_U8);
+		osDelay(33);
+		osMemoryPoolFree(FramePoolHandle, complete_frame);
+
+		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+	}
+  /* USER CODE END 5 */
 }
 
 /* USER CODE BEGIN Header_prvCaptureFramesTask */
@@ -480,14 +512,21 @@ void prvPrintImageTask(void *argument)
 void prvCaptureFramesTask(void *argument)
 {
   /* USER CODE BEGIN prvCaptureFramesTask */
-	vospi_packet paquete;
-	lepton_frame *frame;
+	lepton_vsync(true);
+	HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);
+	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
-	__HAL_GPIO_EXTI_CLEAR_IT(EXTI15_10_IRQn);
 	/* Infinite loop */
 	for(;;)
 	{
-		HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)&frame, sizeof(frame));
+		osThreadFlagsWait(0x1U, osFlagsWaitAny, osWaitForever);
+
+		if((current_frame->y16[59].header[0] & 0xff) == 59)
+		{
+			complete_frame = current_frame;
+			osThreadFlagsSet(uartTxHandle, 0x1U);
+		}
+
 
 		osDelay(1);
 	}

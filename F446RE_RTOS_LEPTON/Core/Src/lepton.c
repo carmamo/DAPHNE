@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-uint8_t lepton_frame_packet[FRAME_SIZE];
+uint8_t lepton_frame_packet[PACKET_SIZE_U8];
 int lepton_image[80][80];
 
 int image_state = -1;
@@ -93,8 +93,8 @@ void print_image_binary_background(void)
 void transfer(void)
 {
 	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
-//	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, FRAME_SIZE);
-	HAL_SPI_Receive(dev.spiHandle, lepton_frame_packet, FRAME_SIZE,1000);
+//	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, PACKET_SIZE_U8);
+	HAL_SPI_Receive(dev.spiHandle, lepton_frame_packet, PACKET_SIZE_U8,1000);
 	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_SET);
 
 	if((lepton_frame_packet[0] & 0xf) != 0x0f)
@@ -160,7 +160,7 @@ void transfer(void)
 void lepton_getPacket(void)
 {
 	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
-	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, FRAME_SIZE);
+	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, PACKET_SIZE_U8);
 }
 
 HAL_StatusTypeDef lepton_SetReg(uint8_t reg)
