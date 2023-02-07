@@ -22,6 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "usbd_cdc_if.h"
+
 
 /* USER CODE END Includes */
 
@@ -98,6 +100,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  CDC_Transmit_FS(Buf, Len);
 
     /* USER CODE BEGIN 3 */
   }

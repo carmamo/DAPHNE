@@ -1,8 +1,8 @@
 var structlepton__t =
 [
-    [ "CS_pin", "structlepton__t.html#a71bd6c08a5ec2ffdded32660d53fb812", null ],
-    [ "CS_port", "structlepton__t.html#a881767caedbe20b07e3bb00376e760cc", null ],
-    [ "i2cHandle", "structlepton__t.html#a528984b28b18704d899209468294df0f", null ],
-    [ "spiHandle", "structlepton__t.html#af1b25e9adeed627a23aa8dbb9e3e2511", null ],
-    [ "uartHandle", "structlepton__t.html#a1885c8b87cf9df951fdc3205ce48c021", null ]
+    [ "CS_pin", "structlepton__t.html#ab841426514d0179650c5389a606eed6c", null ],
+    [ "CS_port", "structlepton__t.html#afddf73984fbbe6fde11317198e57425c", null ],
+    [ "i2cHandle", "structlepton__t.html#a4731648bdb9f42cb99a860ceb9fe0476", null ],
+    [ "spiHandle", "structlepton__t.html#a0b32d4d4c5b6a13075c3556a754b301f", null ],
+    [ "uartHandle", "structlepton__t.html#a57861db563fc195bee8c62d2718809c5", null ]
 ];

@@ -9,5 +9,6 @@ var stm32f4xx__it_8h =
     [ "MemManage_Handler", "stm32f4xx__it_8h.html#a3150f74512510287a942624aa9b44cc5", null ],
     [ "NMI_Handler", "stm32f4xx__it_8h.html#a6ad7a5e3ee69cb6db6a6b9111ba898bc", null ],
     [ "TIM1_UP_TIM10_IRQHandler", "stm32f4xx__it_8h.html#ad1fd361bc5ad89facee67c76d1ff8dc0", null ],
-    [ "UsageFault_Handler", "stm32f4xx__it_8h.html#a1d98923de2ed6b7309b66f9ba2971647", null ]
+    [ "UsageFault_Handler", "stm32f4xx__it_8h.html#a1d98923de2ed6b7309b66f9ba2971647", null ],
+    [ "USART2_IRQHandler", "stm32f4xx__it_8h.html#a0ca6fd0e6f77921dd1123539857ba0a8", null ]
 ];

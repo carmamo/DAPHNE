@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['frame_5fheight_141',['FRAME_HEIGHT',['../lepton_8h.html#a915e7581e140dd2d625fa1cfca365100',1,'lepton.h']]],
-  ['frame_5fsize_142',['FRAME_SIZE',['../lepton_8h.html#af9b1b2ba12857a4bf11289dac8c5462d',1,'lepton.h']]],
-  ['frame_5fwidth_143',['FRAME_WIDTH',['../lepton_8h.html#af193f69a079134ae165cc495b9b62d70',1,'lepton.h']]]
+  ['assert_5fparam_369',['assert_param',['../stm32f4xx__hal__conf_8h.html#a631dea7b230e600555f979c62af1de21',1,'stm32f4xx_hal_conf.h']]]
 ];

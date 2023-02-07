@@ -22,30 +22,25 @@ for the JavaScript code in this file
 */
 var NAVTREE =
 [
-  [ "RTOS_LEPTON", "index.html", [
-    [ "Modules", "modules.html", "modules" ],
-    [ "Data Structures", "annotated.html", [
-      [ "Data Structures", "annotated.html", "annotated_dup" ],
-      [ "Data Structure Index", "classes.html", null ],
-      [ "Data Fields", "functions.html", [
-        [ "All", "functions.html", null ],
-        [ "Variables", "functions_vars.html", null ]
+  [ "RTOS LEPTON", "index.html", [
+    [ "RTOS LEPTON Software Library", "index.html", [
+      [ "Introduction", "index.html#intro_sec", null ],
+      [ "Using the Library", "index.html#install_sec", [
+        [ "Step 1: Opening the box", "index.html#step1", null ]
       ] ]
     ] ],
-    [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ],
-      [ "Globals", "globals.html", [
-        [ "All", "globals.html", null ],
-        [ "Functions", "globals_func.html", null ],
-        [ "Macros", "globals_defs.html", null ]
-      ] ]
+    [ "Reference", "modules.html", "modules" ],
+    [ "Data Structures", "annotated.html", "annotated" ],
+    [ "Data Fields", "functions.html", [
+      [ "All", "functions.html", null ],
+      [ "Variables", "functions_vars.html", null ]
     ] ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"FreeRTOSConfig_8h_source.html"
+"annotated.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

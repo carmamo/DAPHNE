@@ -1,5 +1,5 @@
 var structvospi__packet =
 [
-    [ "data", "structvospi__packet.html#a757bbb3bf3f0b524210eabc469a85c56", null ],
-    [ "header", "structvospi__packet.html#ad27099d1fa82f2e392941f482b654d18", null ]
+    [ "data", "structvospi__packet.html#a12e834912b40e1dddb8116cb31827991", null ],
+    [ "header", "structvospi__packet.html#ad2094ba6b3c1cdb7a6b6342df87015c1", null ]
 ];

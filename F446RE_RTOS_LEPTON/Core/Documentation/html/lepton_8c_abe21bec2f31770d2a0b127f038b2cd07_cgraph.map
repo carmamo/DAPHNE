@@ -1,0 +1,4 @@
+<map id="lepton_command" name="lepton_command">
+<area shape="rect" id="node1" title="Sends a command to the Lepton module." alt="" coords="5,5,140,32"/>
+<area shape="rect" id="node2" href="$lepton_8c.html#a2565ce4fdef6c443eded1123901b44c4" title="Gets the value of a register in the Lepton module." alt="" coords="188,5,307,32"/>
+</map>

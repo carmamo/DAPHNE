@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.17"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>RTOS_LEPTON: Core/Src/main.c File Reference</title>
+<title>RTOS LEPTON: main.c File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -17,6 +17,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="cmsis.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -25,9 +26,10 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">RTOS_LEPTON
+   <div id="projectname">RTOS LEPTON
    &#160;<span id="projectnumber">v0.1.6</span>
    </div>
+   <div id="projectbrief">FLIR LEPTON Software Library</div>
   </td>
  </tr>
  </tbody>
@@ -83,7 +85,9 @@ $(document).ready(function(){initNavTree('main_8c.html',''); initResizable(); })
 
 <div class="header">
   <div class="summary">
-<a href="#func-members">Functions</a>  </div>
+<a href="#define-members">Macros</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
 <div class="title">main.c File Reference</div>  </div>
 </div><!--header-->
@@ -91,314 +95,76 @@ $(document).ready(function(){initNavTree('main_8c.html',''); initResizable(); })
 
 <p>: Main program body  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;<a class="el" href="main_8h_source.html">main.h</a>&quot;</code><br />
-<code>#include &quot;cmsis_os.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="lepton_8h_source.html">lepton.h</a>&quot;</code><br />
-<code>#include &quot;arm_math.h&quot;</code><br />
+<div class="textblock"><div class="dynheader">
+Include dependency graph for main.c:</div>
+<div class="dyncontent">
+<div class="center"><img src="main_8c__incl.png" border="0" usemap="#main_8c" alt=""/></div>
+<map name="main_8c" id="main_8c">
+<area shape="rect" title=": Main program body" alt="" coords="257,5,324,32"/>
+<area shape="rect" href="main_8h.html" title=": Header for main.c file. This file contains the common defines of the application." alt="" coords="5,80,72,107"/>
+<area shape="rect" title=" " alt="" coords="97,80,191,107"/>
+<area shape="rect" href="lepton_8h.html" title="This file contains the declarations and prototypes for the lepton thermal imaging module...." alt="" coords="216,80,291,107"/>
+<area shape="rect" title=" " alt="" coords="249,155,332,181"/>
+<area shape="rect" title=" " alt="" coords="365,80,467,107"/>
+<area shape="rect" title=" " alt="" coords="491,80,562,107"/>
+<area shape="rect" title=" " alt="" coords="53,155,184,181"/>
+</map>
+</div>
 </div><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ga6d504d7d28937ab0e6df462b077fb5db"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga6d504d7d28937ab0e6df462b077fb5db">MEMPOOL_OBJECTS</a></td></tr>
+<tr class="separator:ga6d504d7d28937ab0e6df462b077fb5db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6f4deaa07ec473139631d17fe19e26be"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga6f4deaa07ec473139631d17fe19e26be">FRAME_SIZE_U8</a></td></tr>
+<tr class="separator:ga6f4deaa07ec473139631d17fe19e26be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga86441439f52775093609fb8cbd0bdda9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga86441439f52775093609fb8cbd0bdda9">MEMPOOL_SIZE</a></td></tr>
+<tr class="separator:ga86441439f52775093609fb8cbd0bdda9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a70af21c671abfcc773614a9a4f63d920"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a70af21c671abfcc773614a9a4f63d920">SystemClock_Config</a> (void)</td></tr>
-<tr class="memdesc:a70af21c671abfcc773614a9a4f63d920"><td class="mdescLeft">&#160;</td><td class="mdescRight">System Clock Configuration.  <a href="main_8c.html#a70af21c671abfcc773614a9a4f63d920">More...</a><br /></td></tr>
-<tr class="separator:a70af21c671abfcc773614a9a4f63d920"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99d0fdb0434092bcb24d9c9af917e4e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a99d0fdb0434092bcb24d9c9af917e4e9">StartDefaultTask</a> (void *argument)</td></tr>
-<tr class="memdesc:a99d0fdb0434092bcb24d9c9af917e4e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function implementing the defaultTask thread.  <a href="main_8c.html#a99d0fdb0434092bcb24d9c9af917e4e9">More...</a><br /></td></tr>
-<tr class="separator:a99d0fdb0434092bcb24d9c9af917e4e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a20e109da6734765a8b726173bf635d7f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a20e109da6734765a8b726173bf635d7f">prvPrintImageTask</a> (void *argument)</td></tr>
-<tr class="memdesc:a20e109da6734765a8b726173bf635d7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function implementing the uart_tx thread.  <a href="main_8c.html#a20e109da6734765a8b726173bf635d7f">More...</a><br /></td></tr>
-<tr class="separator:a20e109da6734765a8b726173bf635d7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae92dcb39c54ca91729c91e3a7144b1d6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#ae92dcb39c54ca91729c91e3a7144b1d6">prvCaptureFramesTask</a> (void *argument)</td></tr>
-<tr class="memdesc:ae92dcb39c54ca91729c91e3a7144b1d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function implementing the VoSPI thread.  <a href="main_8c.html#ae92dcb39c54ca91729c91e3a7144b1d6">More...</a><br /></td></tr>
-<tr class="separator:ae92dcb39c54ca91729c91e3a7144b1d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a840291bc02cba5474a4cb46a9b9566fe"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a840291bc02cba5474a4cb46a9b9566fe">main</a> (void)</td></tr>
-<tr class="memdesc:a840291bc02cba5474a4cb46a9b9566fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">The application entry point.  <a href="main_8c.html#a840291bc02cba5474a4cb46a9b9566fe">More...</a><br /></td></tr>
-<tr class="separator:a840291bc02cba5474a4cb46a9b9566fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0cd91fd3a9608559c2a87a8ba6cba55f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a0cd91fd3a9608559c2a87a8ba6cba55f">HAL_GPIO_EXTI_Callback</a> (uint16_t GPIO_Pin)</td></tr>
-<tr class="memdesc:a0cd91fd3a9608559c2a87a8ba6cba55f"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is a callback routine called when an external interrupt is generated by a specified GPIO pin.  <a href="main_8c.html#a0cd91fd3a9608559c2a87a8ba6cba55f">More...</a><br /></td></tr>
-<tr class="separator:a0cd91fd3a9608559c2a87a8ba6cba55f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3df7021fe24cf874f8b1eec5bd5f4cb3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a3df7021fe24cf874f8b1eec5bd5f4cb3">HAL_SPI_RxCpltCallback</a> (SPI_HandleTypeDef *hspi)</td></tr>
-<tr class="separator:a3df7021fe24cf874f8b1eec5bd5f4cb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a3b0ad512a6e6c6157440b68d395eac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a8a3b0ad512a6e6c6157440b68d395eac">HAL_TIM_PeriodElapsedCallback</a> (TIM_HandleTypeDef *htim)</td></tr>
-<tr class="memdesc:a8a3b0ad512a6e6c6157440b68d395eac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Period elapsed callback in non blocking mode.  <a href="main_8c.html#a8a3b0ad512a6e6c6157440b68d395eac">More...</a><br /></td></tr>
-<tr class="separator:a8a3b0ad512a6e6c6157440b68d395eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1730ffe1e560465665eb47d9264826f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8c.html#a1730ffe1e560465665eb47d9264826f9">Error_Handler</a> (void)</td></tr>
-<tr class="memdesc:a1730ffe1e560465665eb47d9264826f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is executed in case of error occurrence.  <a href="main_8c.html#a1730ffe1e560465665eb47d9264826f9">More...</a><br /></td></tr>
-<tr class="separator:a1730ffe1e560465665eb47d9264826f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0cd91fd3a9608559c2a87a8ba6cba55f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga0cd91fd3a9608559c2a87a8ba6cba55f">HAL_GPIO_EXTI_Callback</a> (uint16_t GPIO_Pin)</td></tr>
+<tr class="memdesc:ga0cd91fd3a9608559c2a87a8ba6cba55f"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is a callback routine called when an external interrupt is generated by a specified GPIO pin.  <a href="group__Main.html#ga0cd91fd3a9608559c2a87a8ba6cba55f">More...</a><br /></td></tr>
+<tr class="separator:ga0cd91fd3a9608559c2a87a8ba6cba55f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3df7021fe24cf874f8b1eec5bd5f4cb3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga3df7021fe24cf874f8b1eec5bd5f4cb3">HAL_SPI_RxCpltCallback</a> (SPI_HandleTypeDef *hspi)</td></tr>
+<tr class="separator:ga3df7021fe24cf874f8b1eec5bd5f4cb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga20e109da6734765a8b726173bf635d7f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga20e109da6734765a8b726173bf635d7f">prvPrintImageTask</a> (void *argument)</td></tr>
+<tr class="memdesc:ga20e109da6734765a8b726173bf635d7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function implementing the uart_tx thread.  <a href="group__Main.html#ga20e109da6734765a8b726173bf635d7f">More...</a><br /></td></tr>
+<tr class="separator:ga20e109da6734765a8b726173bf635d7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae92dcb39c54ca91729c91e3a7144b1d6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#gae92dcb39c54ca91729c91e3a7144b1d6">prvCaptureFramesTask</a> (void *argument)</td></tr>
+<tr class="memdesc:gae92dcb39c54ca91729c91e3a7144b1d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function implementing the VoSPI thread.  <a href="group__Main.html#gae92dcb39c54ca91729c91e3a7144b1d6">More...</a><br /></td></tr>
+<tr class="separator:gae92dcb39c54ca91729c91e3a7144b1d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8a3b0ad512a6e6c6157440b68d395eac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga8a3b0ad512a6e6c6157440b68d395eac">HAL_TIM_PeriodElapsedCallback</a> (TIM_HandleTypeDef *htim)</td></tr>
+<tr class="memdesc:ga8a3b0ad512a6e6c6157440b68d395eac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Period elapsed callback in non blocking mode.  <a href="group__Main.html#ga8a3b0ad512a6e6c6157440b68d395eac">More...</a><br /></td></tr>
+<tr class="separator:ga8a3b0ad512a6e6c6157440b68d395eac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1730ffe1e560465665eb47d9264826f9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga1730ffe1e560465665eb47d9264826f9">Error_Handler</a> (void)</td></tr>
+<tr class="memdesc:ga1730ffe1e560465665eb47d9264826f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function is executed in case of error occurrence.  <a href="group__Main.html#ga1730ffe1e560465665eb47d9264826f9">More...</a><br /></td></tr>
+<tr class="separator:ga1730ffe1e560465665eb47d9264826f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:gaf582f359617bccca2d061b3054dc14e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structlepton__frame.html">lepton_frame</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#gaf582f359617bccca2d061b3054dc14e6">MemoryBlock</a> [<a class="el" href="group__Main.html#ga6d504d7d28937ab0e6df462b077fb5db">MEMPOOL_OBJECTS</a>]</td></tr>
+<tr class="memdesc:gaf582f359617bccca2d061b3054dc14e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Static memory allocation for memory pool.  <a href="group__Main.html#gaf582f359617bccca2d061b3054dc14e6">More...</a><br /></td></tr>
+<tr class="separator:gaf582f359617bccca2d061b3054dc14e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa39abc1bee620ce49e15b3572098bd8b"><td class="memItemLeft" align="right" valign="top">osMemoryPoolId_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#gaa39abc1bee620ce49e15b3572098bd8b">FramePoolHandle</a></td></tr>
+<tr class="separator:gaa39abc1bee620ce49e15b3572098bd8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae1271cbf6c517cf9e117a691d6c08b06"><td class="memItemLeft" align="right" valign="top">const osMemoryPoolAttr_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#gae1271cbf6c517cf9e117a691d6c08b06">FramePool_attributes</a></td></tr>
+<tr class="separator:gae1271cbf6c517cf9e117a691d6c08b06"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0156a768741c5aa221876e2727a953b3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structlepton__frame.html">lepton_frame</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga0156a768741c5aa221876e2727a953b3">current_frame</a></td></tr>
+<tr class="separator:ga0156a768741c5aa221876e2727a953b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga04af7b7f0b0d76dd228cdb478910f215"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structlepton__frame.html">lepton_frame</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Main.html#ga04af7b7f0b0d76dd228cdb478910f215">complete_frame</a></td></tr>
+<tr class="separator:ga04af7b7f0b0d76dd228cdb478910f215"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>: Main program body </p>
-<dl class="section attention"><dt>Attention</dt><dd></dd></dl>
+<a name="details" id="details"></a><h2 class="groupheader">Description</h2>
+<div class="textblock"><dl class="section attention"><dt>Attention</dt><dd></dd></dl>
 <p>Copyright (c) 2022 STMicroelectronics. All rights reserved.</p>
 <p>This software is licensed under terms that can be found in the LICENSE file in the root directory of this software component. If no LICENSE file comes with this software, it is provided AS-IS. </p>
-</div><h2 class="groupheader">Function Documentation</h2>
-<a id="a1730ffe1e560465665eb47d9264826f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1730ffe1e560465665eb47d9264826f9">&#9670;&nbsp;</a></span>Error_Handler()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Error_Handler </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>This function is executed in case of error occurrence. </p>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">None</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a0cd91fd3a9608559c2a87a8ba6cba55f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0cd91fd3a9608559c2a87a8ba6cba55f">&#9670;&nbsp;</a></span>HAL_GPIO_EXTI_Callback()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void HAL_GPIO_EXTI_Callback </td>
-          <td>(</td>
-          <td class="paramtype">uint16_t&#160;</td>
-          <td class="paramname"><em>GPIO_Pin</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>This function is a callback routine called when an external interrupt is generated by a specified GPIO pin. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">GPIO_Pin</td><td>Specifies the pin number for the interrupt line. The function checks if the interrupt was generated by the specified FLIR_VSYNC_Pin and if so, allocates memory from the FramePoolHandle memory pool. If memory allocation is successful, it starts a DMA transfer to receive data from the hspi1 peripheral and disables the EXTI15_10_IRQn interrupt. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a3df7021fe24cf874f8b1eec5bd5f4cb3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3df7021fe24cf874f8b1eec5bd5f4cb3">&#9670;&nbsp;</a></span>HAL_SPI_RxCpltCallback()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void HAL_SPI_RxCpltCallback </td>
-          <td>(</td>
-          <td class="paramtype">SPI_HandleTypeDef *&#160;</td>
-          <td class="paramname"><em>hspi</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">hspi</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a8a3b0ad512a6e6c6157440b68d395eac"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a3b0ad512a6e6c6157440b68d395eac">&#9670;&nbsp;</a></span>HAL_TIM_PeriodElapsedCallback()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void HAL_TIM_PeriodElapsedCallback </td>
-          <td>(</td>
-          <td class="paramtype">TIM_HandleTypeDef *&#160;</td>
-          <td class="paramname"><em>htim</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Period elapsed callback in non blocking mode. </p>
-<dl class="section note"><dt>Note</dt><dd>This function is called when TIM1 interrupt took place, inside HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment a global variable "uwTick" used as application time base. </dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">htim</td><td>: TIM handle </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">None</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a840291bc02cba5474a4cb46a9b9566fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a840291bc02cba5474a4cb46a9b9566fe">&#9670;&nbsp;</a></span>main()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int main </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The application entry point. </p>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">int</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="ae92dcb39c54ca91729c91e3a7144b1d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae92dcb39c54ca91729c91e3a7144b1d6">&#9670;&nbsp;</a></span>prvCaptureFramesTask()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void prvCaptureFramesTask </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>argument</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Function implementing the VoSPI thread. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">argument</td><td>Not used </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">None</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a20e109da6734765a8b726173bf635d7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a20e109da6734765a8b726173bf635d7f">&#9670;&nbsp;</a></span>prvPrintImageTask()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void prvPrintImageTask </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>argument</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Function implementing the uart_tx thread. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">argument</td><td>Not used </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">None</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a99d0fdb0434092bcb24d9c9af917e4e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99d0fdb0434092bcb24d9c9af917e4e9">&#9670;&nbsp;</a></span>StartDefaultTask()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void StartDefaultTask </td>
-          <td>(</td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>argument</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Function implementing the defaultTask thread. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">argument</td><td>Not used </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">None</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a70af21c671abfcc773614a9a4f63d920"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a70af21c671abfcc773614a9a4f63d920">&#9670;&nbsp;</a></span>SystemClock_Config()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void SystemClock_Config </td>
-          <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>System Clock Configuration. </p>
-<dl class="retval"><dt>Return values</dt><dd>
-  <table class="retval">
-    <tr><td class="paramname">None</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<p>Configure the main internal regulator output voltage</p>
-<p>Initializes the RCC Oscillators according to the specified parameters in the RCC_OscInitTypeDef structure.</p>
-<p>Activate the Over-Drive mode</p>
-<p>Initializes the CPU, AHB and APB buses clocks</p>
-
-</div>
-</div>
-</div><!-- contents -->
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="dir_c6310732a22f63c0c2fc5595561e68f1.html">Core</a></li><li class="navelem"><a class="el" href="dir_b596f468b52957496e4f78b80e029268.html">Src</a></li><li class="navelem"><a class="el" href="main_8c.html">main.c</a></li>
-    <li class="footer">Generated by
+    <li class="footer">Generated on Tue Feb 7 2023 13:22:34 for RTOS LEPTON by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

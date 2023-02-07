@@ -21,22 +21,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-uint8_t lepton_frame_packet[PACKET_SIZE_U8];
-int lepton_image[80][80];
+/**
+  @defgroup Lepton Lepton Driver
 
-int image_state = -1;
-int print_image_binary_i;
-int print_image_binary_j;
+ */
 
-int lost_frame_counter = 0;
-int last_frame_number;
-int frame_complete = 0;
-int start_image = 0;
-int last_crc;
-int new_frame = 0;
-int frame_counter = 0;
-int frame_number;
-uint8_t tx[1] = {0x00};
+/**
+  @addtogroup Lepton
+  @{
+ */
+
 
 static lepton_t dev;
 
@@ -49,119 +43,14 @@ void lepton_Init(I2C_HandleTypeDef *i2c, SPI_HandleTypeDef *spi, UART_HandleType
 	dev.CS_port = port;
 	dev.CS_pin = pin;
 }
+//HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_RESET);
+//HAL_Delay(100);
+//HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_SET);
+//HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_RESET);
+//HAL_Delay(100);
+//HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_SET);
+//HAL_Delay(5000);
 
-void print_image_binary_background(void)
-{
-	switch(image_state)
-	{
-	case 0:
-		send_byte(0xDE);
-		image_state++;
-		break;
-	case 1:
-		send_byte(0xAD);
-		image_state++;
-		break;
-	case 2:
-		send_byte(0xBE);
-		image_state++;
-		break;
-	case 3:
-		send_byte(0xEF);
-		image_state++;
-		print_image_binary_i = 0;
-		print_image_binary_j = 0;
-		break;
-	case 4:
-		send_byte((lepton_image[print_image_binary_i][print_image_binary_j] >> 8)&0xff);
-		send_byte((lepton_image[print_image_binary_i][print_image_binary_j])&0xff);
-
-		print_image_binary_j++;
-		if(print_image_binary_j >= 80)
-		{
-			print_image_binary_j=0;
-			print_image_binary_i++;
-			if(print_image_binary_i >= 60) image_state = -1;
-		}
-		break;
-	default:
-		break;
-	}
-
-}
-
-void transfer(void)
-{
-	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
-//	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, PACKET_SIZE_U8);
-	HAL_SPI_Receive(dev.spiHandle, lepton_frame_packet, PACKET_SIZE_U8,1000);
-	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_SET);
-
-	if((lepton_frame_packet[0] & 0xf) != 0x0f)
-	{
-		if(lepton_frame_packet[1] == 0)
-		{
-			if(last_crc != (lepton_frame_packet[3] << 8 | lepton_frame_packet[4]))
-			{
-				lost_frame_counter = 0;
-				new_frame = 1;
-			}
-			last_crc = lepton_frame_packet[3] << 8 | lepton_frame_packet[4];
-
-		}
-
-		frame_number = lepton_frame_packet[1];
-
-		if(frame_number < 60)
-		{
-
-			if(image_state == -1)
-			{
-				for(int i = 0; i < 80; i++)
-				{
-					lepton_image[frame_number][i] = (lepton_frame_packet[2*i+4] << 8 | lepton_frame_packet[2*i+5]);
-				}
-			}
-		}
-		else
-		{
-			lost_frame_counter++;
-		}
-
-
-
-		if(frame_number == 59)
-		{
-			frame_complete = 1;
-//			last_frame_number = 0;
-		}
-	}
-
-	lost_frame_counter++;
-	if(lost_frame_counter > 100)
-	{
-		HAL_Delay(185);				// RESYNC
-		lost_frame_counter = 0;
-	}
-
-
-	if(frame_complete)
-	{
-		if(new_frame)
-		{
-			frame_counter++;
-			image_state = 0;
-			new_frame = 0;
-		}
-		frame_complete = 0;
-	}
-}
-
-void lepton_getPacket(void)
-{
-	HAL_GPIO_WritePin(dev.CS_port, dev.CS_pin, GPIO_PIN_RESET);
-	HAL_SPI_Receive_IT(dev.spiHandle, lepton_frame_packet, PACKET_SIZE_U8);
-}
 
 HAL_StatusTypeDef lepton_SetReg(uint8_t reg)
 {
@@ -292,3 +181,7 @@ void send_msg(int data)
 	sprintf(buf, "%d\r\n", data);
 	HAL_UART_Transmit(dev.uartHandle, (uint8_t *)buf, strlen(buf), 100);
 }
+
+/**
+  @} end of Lepton group
+ */

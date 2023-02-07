@@ -1,0 +1,4 @@
+<map id="prvPrintImageTask" name="prvPrintImageTask">
+<area shape="rect" id="node1" title="Function implementing the uart_tx thread." alt="" coords="5,5,148,32"/>
+<area shape="rect" id="node2" href="$lepton_8h.html#ae697bf12e5d22e568bf2fbed6bd15390" title="Sends a single byte of data over the specified communication interface." alt="" coords="196,5,285,32"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="print_image_binary_background" name="print_image_binary_background">
+<area shape="rect" id="node1" title="Prints the binary image of a Lepton frame to the background." alt="" coords="5,5,153,47"/>
+<area shape="rect" id="node2" href="$lepton_8c.html#ae697bf12e5d22e568bf2fbed6bd15390" title="Sends a single byte of data over the specified communication interface." alt="" coords="201,13,291,39"/>
+</map>

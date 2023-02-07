@@ -1,0 +1,6 @@
+<map id="lepton_vsync" name="lepton_vsync">
+<area shape="rect" id="node1" title="Sets the vsync mode on the Lepton module." alt="" coords="5,31,113,57"/>
+<area shape="rect" id="node2" href="$lepton_8c.html#abe21bec2f31770d2a0b127f038b2cd07" title="Sends a command to the Lepton module." alt="" coords="161,5,296,32"/>
+<area shape="rect" id="node4" href="$lepton_8c.html#a62e8088af898afaad5a9ebc4ebdc8554" title="Sets data in the Lepton module." alt="" coords="167,56,290,83"/>
+<area shape="rect" id="node3" href="$lepton_8c.html#a2565ce4fdef6c443eded1123901b44c4" title="Gets the value of a register in the Lepton module." alt="" coords="344,31,463,57"/>
+</map>

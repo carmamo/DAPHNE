@@ -130,32 +130,13 @@ typedef struct {
 void lepton_Init(I2C_HandleTypeDef *i2c, SPI_HandleTypeDef *spi, UART_HandleTypeDef *uart, GPIO_TypeDef *port, uint16_t pin);
 
 /**
- * @fn void print_image_binary_background(void)
- * @brief Prints the binary image of a Lepton frame to the background
- *
- */
-void print_image_binary_background(void);
-
-/**
- * @fn void transfer(void)
- * @brief Transfers data from the Lepton module
- *
- */
-void transfer(void);
-
-/**
- * @fn void lepton_getPacket(void)
- * @brief Gets a single packet from the Lepton module
- *
- */
-void lepton_getPacket(void);
-
-/**
  * @fn HAL_StatusTypeDef lepton_SetReg(uint8_t)
  * @brief Sets a register in the Lepton module
  *
  * @param reg The register to set
  * @return The result of the register set operation
+ *
+ * in depth description of the function
  */
 HAL_StatusTypeDef lepton_SetReg(uint8_t reg);
 

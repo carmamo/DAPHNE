@@ -15,6 +15,18 @@
   *
   ******************************************************************************
   */
+/*! \mainpage RTOS LEPTON Software Library
+ *
+ * \section intro_sec Introduction
+ *
+ * This is the introduction.
+ *
+ * \section install_sec Using the Library
+ *
+ * \subsection step1 Step 1: Opening the box
+ *
+ * etc...
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -25,12 +37,22 @@
 #include "lepton.h"
 #include "arm_math.h"
 #include <stdbool.h>
+#include <string.h>
+
+/**
+  @defgroup Main Main Program
+
+ */
+
+/**
+  @addtogroup Main
+  @{
+ */
 
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -42,7 +64,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -70,7 +92,11 @@ const osThreadAttr_t VoSPI_attributes = {
 };
 /* USER CODE BEGIN PV */
 
-lepton_frame MemoryBlock[4];
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
+lepton_frame MemoryBlock[MEMPOOL_OBJECTS]; ///< Static memory allocation for memory pool
+
+static uint8_t lost_frame = 0;
 
 /* Definitions for FramePool */
 
@@ -84,6 +110,9 @@ const osMemoryPoolAttr_t FramePool_attributes = {
 lepton_frame *current_frame;
 lepton_frame *complete_frame;
 
+static uint16_t frame_packet[FRAME_HEIGHT*FRAME_WIDTH];
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,6 +126,8 @@ void prvPrintImageTask(void *argument);
 void prvCaptureFramesTask(void *argument);
 
 /* USER CODE BEGIN PFP */
+
+
 
 /* USER CODE END PFP */
 
@@ -139,14 +170,6 @@ int main(void)
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   lepton_Init(&hi2c1, &hspi1, &huart2, SPI1_CS_GPIO_Port, SPI1_CS_Pin);
-
-
-  HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_RESET);
-  HAL_Delay(100);
-  HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_RESET);
-  HAL_Delay(5000);
-  HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_SET);
 
   /* USER CODE END 2 */
 
@@ -424,6 +447,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+
 /**
  * @fn void HAL_GPIO_EXTI_Callback(uint16_t)
  * @brief
@@ -444,7 +469,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		current_frame = (lepton_frame *)osMemoryPoolAlloc(FramePoolHandle, 0U);
 		if(current_frame != NULL)
 		{
-			HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame, FRAME_SIZE_U8);
+			osThreadFlagsSet(VoSPIHandle, 0x1U);
 			HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
 		}
 	}
@@ -457,15 +482,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  */
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
-	if((current_frame->y16[0].header[0] & 0xf00) != 0x0f00)
-	{
-		osThreadFlagsSet(VoSPIHandle, 0x1U);
-	}
-	else
-	{
-		osMemoryPoolFree(FramePoolHandle, current_frame);
-		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-	}
+	osThreadFlagsSet(VoSPIHandle, 0x2U);
+
+
+//	if((current_frame->y16[0].header[0] & 0xf00) != 0xf00)
+//	{
+//		osThreadFlagsSet(VoSPIHandle, 0x2U);
+//	}
+//	else
+//	{
+//		osMemoryPoolFree(FramePoolHandle, current_frame);
+//		current_frame = NULL;
+//		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+//	}
 }
 /* USER CODE END 4 */
 
@@ -485,6 +514,14 @@ void prvPrintImageTask(void *argument)
 		/* Wait for completed frame */
 		osThreadFlagsWait(0x1U, osFlagsWaitAny, osWaitForever);
 
+		for(int i = 0; i < 60; i++)
+		{
+			memcpy((void *)&frame_packet[i*80], (void *)complete_frame->y16[i].data, 160);
+		}
+
+		osMemoryPoolFree(FramePoolHandle, complete_frame);
+		complete_frame = NULL;
+
 		/* Transmit header */
 		send_byte(0xDE);
 		send_byte(0xAD);
@@ -492,10 +529,10 @@ void prvPrintImageTask(void *argument)
 		send_byte(0xEF);
 
 		/* Transmit frame */
-		HAL_UART_Transmit_IT(&huart2, (uint8_t *)complete_frame, FRAME_SIZE_U8);
-		osDelay(33);
-		osMemoryPoolFree(FramePoolHandle, complete_frame);
+		HAL_UART_Transmit_IT(&huart2, (uint8_t *)frame_packet, PACKET_SIZE_U8);
 
+
+		__HAL_GPIO_EXTI_CLEAR_IT(EXTI15_10_IRQn);
 		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 	}
@@ -512,23 +549,72 @@ void prvPrintImageTask(void *argument)
 void prvCaptureFramesTask(void *argument)
 {
   /* USER CODE BEGIN prvCaptureFramesTask */
+
+
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(FLIR_PWR_DWN_L_GPIO_Port, FLIR_PWR_DWN_L_Pin, GPIO_PIN_SET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(FLIR_RESET_L_GPIO_Port, FLIR_RESET_L_Pin, GPIO_PIN_SET);
+	HAL_Delay(5000);
+
 	lepton_vsync(true);
+
 	HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);
-	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 	/* Infinite loop */
 	for(;;)
 	{
 		osThreadFlagsWait(0x1U, osFlagsWaitAny, osWaitForever);
 
-		if((current_frame->y16[59].header[0] & 0xff) == 59)
+		HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame, FRAME_SIZE_U8);
+
+		osThreadFlagsWait(0x2U, osFlagsWaitAny, osWaitForever);
+
+
+		if((current_frame->y16[59].header[0] & 0xff) == (FRAME_HEIGHT - 1))
 		{
 			complete_frame = current_frame;
+			current_frame = NULL;
+
+			lost_frame = 0;
+
 			osThreadFlagsSet(uartTxHandle, 0x1U);
+
 		}
+		else
+		{
+			lost_frame++;
 
+			if(lost_frame > 9)
+			{
+				// Synchronization Lost
+				osDelay(185);
+//				do
+//				{
+//					HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame, PACKET_SIZE_U8);
+//					osThreadFlagsWait(0x2U, osFlagsWaitAny, osWaitForever);
+//
+//				} while((current_frame->y16[0].header[0] & 0xf00) == 0xf00);
 
-		osDelay(1);
+				HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame , FRAME_SIZE_U8);
+
+				osThreadFlagsWait(0x2U, osFlagsWaitAny, osWaitForever);
+
+				complete_frame = current_frame;
+				current_frame = NULL;
+
+				lost_frame = 0;
+
+				osThreadFlagsSet(uartTxHandle, 0x1U);
+			}
+			else
+			{
+				osMemoryPoolFree(FramePoolHandle, current_frame);
+				current_frame = NULL;
+				__HAL_GPIO_EXTI_CLEAR_IT(EXTI15_10_IRQn);
+				HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+			}
+		}
 	}
   /* USER CODE END prvCaptureFramesTask */
 }
@@ -582,6 +668,7 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

@@ -7,6 +7,6 @@ var main_8c =
     [ "main", "main_8c.html#a840291bc02cba5474a4cb46a9b9566fe", null ],
     [ "prvCaptureFramesTask", "main_8c.html#ae92dcb39c54ca91729c91e3a7144b1d6", null ],
     [ "prvPrintImageTask", "main_8c.html#a20e109da6734765a8b726173bf635d7f", null ],
-    [ "StartDefaultTask", "main_8c.html#a99d0fdb0434092bcb24d9c9af917e4e9", null ],
-    [ "SystemClock_Config", "main_8c.html#a70af21c671abfcc773614a9a4f63d920", null ]
+    [ "SystemClock_Config", "main_8c.html#a70af21c671abfcc773614a9a4f63d920", null ],
+    [ "MemoryBlock", "main_8c.html#af582f359617bccca2d061b3054dc14e6", null ]
 ];

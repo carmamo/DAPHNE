@@ -1,0 +1,7 @@
+<map id="prvCaptureFramesTask" name="prvCaptureFramesTask">
+<area shape="rect" id="node1" title="Function implementing the VoSPI thread." alt="" coords="5,31,176,57"/>
+<area shape="rect" id="node2" href="$lepton_8h.html#aed5e2c854553ac9aad9f835563ffb395" title="Sets the vsync mode on the Lepton module." alt="" coords="224,31,332,57"/>
+<area shape="rect" id="node3" href="$lepton_8c.html#abe21bec2f31770d2a0b127f038b2cd07" title="Sends a command to the Lepton module." alt="" coords="380,5,515,32"/>
+<area shape="rect" id="node5" href="$lepton_8c.html#a62e8088af898afaad5a9ebc4ebdc8554" title="Sets data in the Lepton module." alt="" coords="386,56,509,83"/>
+<area shape="rect" id="node4" href="$lepton_8c.html#a2565ce4fdef6c443eded1123901b44c4" title="Gets the value of a register in the Lepton module." alt="" coords="563,31,681,57"/>
+</map>

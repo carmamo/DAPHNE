@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['lepton_2ec_81',['lepton.c',['../lepton_8c.html',1,'']]],
-  ['lepton_2eh_82',['lepton.h',['../lepton_8h.html',1,'']]]
+  ['freertos_2ec_281',['freertos.c',['../freertos_8c.html',1,'']]],
+  ['freertosconfig_2eh_282',['FreeRTOSConfig.h',['../FreeRTOSConfig_8h.html',1,'']]]
 ];

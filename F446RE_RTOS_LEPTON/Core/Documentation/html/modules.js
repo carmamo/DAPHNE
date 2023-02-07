@@ -1,4 +1,5 @@
 var modules =
 [
-    [ "CMSIS", "group__CMSIS.html", "group__CMSIS" ]
+    [ "Lepton Driver", "group__Lepton.html", "group__Lepton" ],
+    [ "Main Program", "group__Main.html", "group__Main" ]
 ];

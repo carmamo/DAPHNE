@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.17"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>RTOS_LEPTON: vospi_packet Struct Reference</title>
+<title>RTOS LEPTON: vospi_packet Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -17,6 +17,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="cmsis.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -25,9 +26,10 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">RTOS_LEPTON
+   <div id="projectname">RTOS LEPTON
    &#160;<span id="projectnumber">v0.1.6</span>
    </div>
+   <div id="projectbrief">FLIR LEPTON Software Library</div>
   </td>
  </tr>
  </tbody>
@@ -90,28 +92,24 @@ $(document).ready(function(){initNavTree('structvospi__packet.html',''); initRes
 <div class="contents">
 
 <p>This struct holds two header values and an array of data.  
- <a href="structvospi__packet.html#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="lepton_8h_source.html">lepton.h</a>&gt;</code></p>
+</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:ad27099d1fa82f2e392941f482b654d18"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvospi__packet.html#ad27099d1fa82f2e392941f482b654d18">header</a> [2]</td></tr>
-<tr class="separator:ad27099d1fa82f2e392941f482b654d18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a757bbb3bf3f0b524210eabc469a85c56"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvospi__packet.html#a757bbb3bf3f0b524210eabc469a85c56">data</a> [<a class="el" href="lepton_8h.html#af193f69a079134ae165cc495b9b62d70">FRAME_WIDTH</a>]</td></tr>
-<tr class="separator:a757bbb3bf3f0b524210eabc469a85c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2094ba6b3c1cdb7a6b6342df87015c1"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvospi__packet.html#ad2094ba6b3c1cdb7a6b6342df87015c1">header</a> [2]</td></tr>
+<tr class="separator:ad2094ba6b3c1cdb7a6b6342df87015c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12e834912b40e1dddb8116cb31827991"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structvospi__packet.html#a12e834912b40e1dddb8116cb31827991">data</a> [<a class="el" href="lepton_8h.html#af193f69a079134ae165cc495b9b62d70">FRAME_WIDTH</a>]</td></tr>
+<tr class="separator:a12e834912b40e1dddb8116cb31827991"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This struct holds two header values and an array of data. </p>
-</div><h2 class="groupheader">Field Documentation</h2>
-<a id="a757bbb3bf3f0b524210eabc469a85c56"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a757bbb3bf3f0b524210eabc469a85c56">&#9670;&nbsp;</a></span>data</h2>
+<h2 class="groupheader">Field Documentation</h2>
+<a id="a12e834912b40e1dddb8116cb31827991"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12e834912b40e1dddb8116cb31827991">&#9670;&nbsp;</a></span>data</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">vospi_packet::data</td>
+          <td class="memname">data</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -119,14 +117,14 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="ad27099d1fa82f2e392941f482b654d18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad27099d1fa82f2e392941f482b654d18">&#9670;&nbsp;</a></span>header</h2>
+<a id="ad2094ba6b3c1cdb7a6b6342df87015c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2094ba6b3c1cdb7a6b6342df87015c1">&#9670;&nbsp;</a></span>header</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">vospi_packet::header</td>
+          <td class="memname">header</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -134,16 +132,13 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>Core/Inc/<a class="el" href="lepton_8h_source.html">lepton.h</a></li>
-</ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="structvospi__packet.html">vospi_packet</a></li>
-    <li class="footer">Generated by
+    <li class="footer">Generated on Tue Feb 7 2023 13:22:34 for RTOS LEPTON by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>

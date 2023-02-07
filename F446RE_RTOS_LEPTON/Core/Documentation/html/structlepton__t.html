@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.17"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>RTOS_LEPTON: lepton_t Struct Reference</title>
+<title>RTOS LEPTON: lepton_t Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -17,6 +17,7 @@
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="cmsis.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -25,9 +26,10 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">RTOS_LEPTON
+   <div id="projectname">RTOS LEPTON
    &#160;<span id="projectnumber">v0.1.6</span>
    </div>
+   <div id="projectbrief">FLIR LEPTON Software Library</div>
   </td>
  </tr>
  </tbody>
@@ -90,34 +92,30 @@ $(document).ready(function(){initNavTree('structlepton__t.html',''); initResizab
 <div class="contents">
 
 <p>This struct holds handles for I2C, SPI, CS GPIO and UART communication interfaces.  
- <a href="structlepton__t.html#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="lepton_8h_source.html">lepton.h</a>&gt;</code></p>
+</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a528984b28b18704d899209468294df0f"><td class="memItemLeft" align="right" valign="top">I2C_HandleTypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#a528984b28b18704d899209468294df0f">i2cHandle</a></td></tr>
-<tr class="separator:a528984b28b18704d899209468294df0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1b25e9adeed627a23aa8dbb9e3e2511"><td class="memItemLeft" align="right" valign="top">SPI_HandleTypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#af1b25e9adeed627a23aa8dbb9e3e2511">spiHandle</a></td></tr>
-<tr class="separator:af1b25e9adeed627a23aa8dbb9e3e2511"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a881767caedbe20b07e3bb00376e760cc"><td class="memItemLeft" align="right" valign="top">GPIO_TypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#a881767caedbe20b07e3bb00376e760cc">CS_port</a></td></tr>
-<tr class="separator:a881767caedbe20b07e3bb00376e760cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71bd6c08a5ec2ffdded32660d53fb812"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#a71bd6c08a5ec2ffdded32660d53fb812">CS_pin</a></td></tr>
-<tr class="separator:a71bd6c08a5ec2ffdded32660d53fb812"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1885c8b87cf9df951fdc3205ce48c021"><td class="memItemLeft" align="right" valign="top">UART_HandleTypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#a1885c8b87cf9df951fdc3205ce48c021">uartHandle</a></td></tr>
-<tr class="separator:a1885c8b87cf9df951fdc3205ce48c021"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4731648bdb9f42cb99a860ceb9fe0476"><td class="memItemLeft" align="right" valign="top">I2C_HandleTypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#a4731648bdb9f42cb99a860ceb9fe0476">i2cHandle</a></td></tr>
+<tr class="separator:a4731648bdb9f42cb99a860ceb9fe0476"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b32d4d4c5b6a13075c3556a754b301f"><td class="memItemLeft" align="right" valign="top">SPI_HandleTypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#a0b32d4d4c5b6a13075c3556a754b301f">spiHandle</a></td></tr>
+<tr class="separator:a0b32d4d4c5b6a13075c3556a754b301f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afddf73984fbbe6fde11317198e57425c"><td class="memItemLeft" align="right" valign="top">GPIO_TypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#afddf73984fbbe6fde11317198e57425c">CS_port</a></td></tr>
+<tr class="separator:afddf73984fbbe6fde11317198e57425c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab841426514d0179650c5389a606eed6c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#ab841426514d0179650c5389a606eed6c">CS_pin</a></td></tr>
+<tr class="separator:ab841426514d0179650c5389a606eed6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57861db563fc195bee8c62d2718809c5"><td class="memItemLeft" align="right" valign="top">UART_HandleTypeDef *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structlepton__t.html#a57861db563fc195bee8c62d2718809c5">uartHandle</a></td></tr>
+<tr class="separator:a57861db563fc195bee8c62d2718809c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>This struct holds handles for I2C, SPI, CS GPIO and UART communication interfaces. </p>
-</div><h2 class="groupheader">Field Documentation</h2>
-<a id="a71bd6c08a5ec2ffdded32660d53fb812"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71bd6c08a5ec2ffdded32660d53fb812">&#9670;&nbsp;</a></span>CS_pin</h2>
+<h2 class="groupheader">Field Documentation</h2>
+<a id="ab841426514d0179650c5389a606eed6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab841426514d0179650c5389a606eed6c">&#9670;&nbsp;</a></span>CS_pin</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">lepton_t::CS_pin</td>
+          <td class="memname">CS_pin</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -125,14 +123,14 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a881767caedbe20b07e3bb00376e760cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a881767caedbe20b07e3bb00376e760cc">&#9670;&nbsp;</a></span>CS_port</h2>
+<a id="afddf73984fbbe6fde11317198e57425c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afddf73984fbbe6fde11317198e57425c">&#9670;&nbsp;</a></span>CS_port</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">lepton_t::CS_port</td>
+          <td class="memname">CS_port</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -140,14 +138,14 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a528984b28b18704d899209468294df0f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a528984b28b18704d899209468294df0f">&#9670;&nbsp;</a></span>i2cHandle</h2>
+<a id="a4731648bdb9f42cb99a860ceb9fe0476"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4731648bdb9f42cb99a860ceb9fe0476">&#9670;&nbsp;</a></span>i2cHandle</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">lepton_t::i2cHandle</td>
+          <td class="memname">i2cHandle</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -155,14 +153,14 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="af1b25e9adeed627a23aa8dbb9e3e2511"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1b25e9adeed627a23aa8dbb9e3e2511">&#9670;&nbsp;</a></span>spiHandle</h2>
+<a id="a0b32d4d4c5b6a13075c3556a754b301f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b32d4d4c5b6a13075c3556a754b301f">&#9670;&nbsp;</a></span>spiHandle</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">lepton_t::spiHandle</td>
+          <td class="memname">spiHandle</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -170,14 +168,14 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="a1885c8b87cf9df951fdc3205ce48c021"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1885c8b87cf9df951fdc3205ce48c021">&#9670;&nbsp;</a></span>uartHandle</h2>
+<a id="a57861db563fc195bee8c62d2718809c5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57861db563fc195bee8c62d2718809c5">&#9670;&nbsp;</a></span>uartHandle</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">lepton_t::uartHandle</td>
+          <td class="memname">uartHandle</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -185,16 +183,13 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>Core/Inc/<a class="el" href="lepton_8h_source.html">lepton.h</a></li>
-</ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
     <li class="navelem"><a class="el" href="structlepton__t.html">lepton_t</a></li>
-    <li class="footer">Generated by
+    <li class="footer">Generated on Tue Feb 7 2023 13:22:34 for RTOS LEPTON by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>
   </ul>
