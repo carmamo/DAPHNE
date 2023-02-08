@@ -33,6 +33,13 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/OS/SEGGER_SYSVIEW_FreeRTOS.h \
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW.h \
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER.h \
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/Global.h \
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW_ConfDefaults.h \
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_SYSVIEW_Conf.h \
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_RTT_Conf.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h \
@@ -43,7 +50,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../Core/Inc/lepton.h \
  /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/ARM_CMSIS/CMSIS/DSP/Include/arm_math.h \
- ../Drivers/CMSIS/Include/cmsis_compiler.h
+ ../Drivers/CMSIS/Include/cmsis_compiler.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -79,6 +87,13 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/OS/SEGGER_SYSVIEW_FreeRTOS.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/Global.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW_ConfDefaults.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_SYSVIEW_Conf.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_RTT_Conf.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h:
@@ -90,3 +105,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/lepton.h:
 /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/ARM_CMSIS/CMSIS/DSP/Include/arm_math.h:
 ../Drivers/CMSIS/Include/cmsis_compiler.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h:

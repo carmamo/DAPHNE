@@ -38,6 +38,8 @@
 #include "arm_math.h"
 #include <stdbool.h>
 #include <string.h>
+#include "SEGGER_SYSVIEW.h"
+#include "portable.h"
 
 /**
   @defgroup Main Main Program
@@ -169,6 +171,10 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  SEGGER_SYSVIEW_Conf();					/* Configure and initialize SystemView */
+  vSetVarulMaxPRIGROUPValue();
+  SEGGER_SYSVIEW_Start();
+
   lepton_Init(&hi2c1, &hspi1, &huart2, SPI1_CS_GPIO_Port, SPI1_CS_Pin);
 
   /* USER CODE END 2 */
@@ -464,6 +470,7 @@ static void MX_GPIO_Init(void)
  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+	SEGGER_SYSVIEW_RecordEnterISR();
 	if (GPIO_Pin == FLIR_VSYNC_Pin)
 	{
 		current_frame = (lepton_frame *)osMemoryPoolAlloc(FramePoolHandle, 0U);
@@ -473,6 +480,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
 		}
 	}
+	SEGGER_SYSVIEW_RecordExitISR();
 }
 /**
  * @fn void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef*)
@@ -482,19 +490,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  */
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 {
+	SEGGER_SYSVIEW_RecordEnterISR();
 	osThreadFlagsSet(VoSPIHandle, 0x2U);
-
-
-//	if((current_frame->y16[0].header[0] & 0xf00) != 0xf00)
-//	{
-//		osThreadFlagsSet(VoSPIHandle, 0x2U);
-//	}
-//	else
-//	{
-//		osMemoryPoolFree(FramePoolHandle, current_frame);
-//		current_frame = NULL;
-//		HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-//	}
+	SEGGER_SYSVIEW_RecordExitISR();
 }
 /* USER CODE END 4 */
 
@@ -591,7 +589,7 @@ void prvCaptureFramesTask(void *argument)
 				osDelay(185);
 //				do
 //				{
-//					HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame, PACKET_SIZE_U8);
+//					HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame, 1);
 //					osThreadFlagsWait(0x2U, osFlagsWaitAny, osWaitForever);
 //
 //				} while((current_frame->y16[0].header[0] & 0xf00) == 0xf00);
@@ -611,6 +609,7 @@ void prvCaptureFramesTask(void *argument)
 			{
 				osMemoryPoolFree(FramePoolHandle, current_frame);
 				current_frame = NULL;
+
 				__HAL_GPIO_EXTI_CLEAR_IT(EXTI15_10_IRQn);
 				HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 			}
