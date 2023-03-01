@@ -170,6 +170,35 @@ HAL_StatusTypeDef lepton_vsync(bool vsync_enabled)
 		return lepton_command(0x4855);
 }
 
+HAL_StatusTypeDef lepton_version()
+{
+	if(lepton_command(0x481C) != HAL_OK) return HAL_ERROR;
+
+	char leptonhw[33];
+	lepton_GetData((uint16_t *)leptonhw, 32);
+
+	//Detected Lepton2.5 Shuttered (Radiometric)
+	if (strstr(leptonhw, "05-070360") != NULL)
+	{
+		return HAL_OK;
+	}
+
+	//Detected Lepton3.5 Shuttered (Radiometric)
+	else if (strstr(leptonhw, "05-070170") != NULL)
+	{
+		return HAL_OK;
+	}
+
+	//Unsupported Lepton
+	else
+	{
+		return HAL_ERROR;
+	}
+
+
+
+}
+
 
 void send_byte(uint8_t data)
 {

@@ -40,6 +40,8 @@
 #include <string.h>
 #include "SEGGER_SYSVIEW.h"
 #include "portable.h"
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
 
 /**
   @defgroup Main Main Program
@@ -61,6 +63,7 @@
 /* USER CODE BEGIN PD */
 #define MEMPOOL_OBJECTS (4)
 #define FRAME_SIZE_U8	(9840)
+#define FRAME_SIZE_3_5_U8	(9840)
 #define MEMPOOL_SIZE	(39360)
 /* USER CODE END PD */
 
@@ -100,6 +103,8 @@ lepton_frame MemoryBlock[MEMPOOL_OBJECTS]; ///< Static memory allocation for mem
 
 static uint8_t lost_frame = 0;
 
+extern USBD_HandleTypeDef hUsbDeviceFS;
+
 /* Definitions for FramePool */
 
 osMemoryPoolId_t FramePoolHandle;
@@ -112,7 +117,7 @@ const osMemoryPoolAttr_t FramePool_attributes = {
 lepton_frame *current_frame;
 lepton_frame *complete_frame;
 
-static uint16_t frame_packet[FRAME_HEIGHT*FRAME_WIDTH];
+static uint16_t frame_packet[(FRAME_HEIGHT*FRAME_WIDTH) + 2] = {0xDEAD, 0xBEEF};
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 /* USER CODE END PV */
@@ -171,6 +176,8 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  MX_USB_DEVICE_Init();
+
   SEGGER_SYSVIEW_Conf();					/* Configure and initialize SystemView */
   vSetVarulMaxPRIGROUPValue();
   SEGGER_SYSVIEW_Start();
@@ -251,9 +258,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 160;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -415,7 +422,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, FLIR_PWR_DWN_L_Pin|FLIR_RESET_L_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, FLIR_PWR_DWN_L_Pin|FLIR_RESET_L_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_SET);
@@ -437,7 +444,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SPI1_CS_Pin */
   GPIO_InitStruct.Pin = SPI1_CS_Pin;
@@ -506,6 +513,7 @@ void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
 void prvPrintImageTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
+
 	/* Infinite loop */
 	for(;;)
 	{
@@ -514,20 +522,18 @@ void prvPrintImageTask(void *argument)
 
 		for(int i = 0; i < 60; i++)
 		{
-			memcpy((void *)&frame_packet[i*80], (void *)complete_frame->y16[i].data, 160);
+			memcpy((void *)&frame_packet[2 + (i*80)], (void *)complete_frame->y16[i].data, 160);
 		}
 
 		osMemoryPoolFree(FramePoolHandle, complete_frame);
 		complete_frame = NULL;
 
-		/* Transmit header */
-		send_byte(0xDE);
-		send_byte(0xAD);
-		send_byte(0xBE);
-		send_byte(0xEF);
 
 		/* Transmit frame */
-		HAL_UART_Transmit_IT(&huart2, (uint8_t *)frame_packet, PACKET_SIZE_U8);
+		if (hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED)
+		{
+			CDC_Transmit_FS((uint8_t *)frame_packet, (FRAME_SIZE_U8 + 4));
+		}
 
 
 		__HAL_GPIO_EXTI_CLEAR_IT(EXTI15_10_IRQn);
@@ -587,6 +593,7 @@ void prvCaptureFramesTask(void *argument)
 			{
 				// Synchronization Lost
 				osDelay(185);
+
 //				do
 //				{
 //					HAL_SPI_Receive_DMA(&hspi1, (uint8_t *)current_frame, 1);

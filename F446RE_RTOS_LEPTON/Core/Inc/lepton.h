@@ -41,19 +41,25 @@ extern "C" {
  * @brief Total size of a single frame in bytes.
  *
  */
-#define PACKET_SIZE_U8		(164)
+#define PACKET_SIZE__2_5_U8		(164)
+
+#define PACKET_SIZE__3_5_U8		(324)
 /**
  * @def FRAME_HEIGHT
  * @brief Height of a single frame in pixels.
  *
  */
-#define FRAME_HEIGHT	(60)
+#define FRAME_HEIGHT_2_5	(60)
+
+#define FRAME_HEIGHT_3_5	(120)
 /**
  * @def FRAME_WIDTH
  * @brief Width of a single frame in pixels.
  *
  */
-#define FRAME_WIDTH		(80)
+#define FRAME_WIDTH_2_5		(80)
+
+#define FRAME_WIDTH_3_5		(160)
 /**
  * @def LEPTON_I2C_ADDR
  * @brief The I2C address of the Lepton module.
@@ -196,6 +202,14 @@ HAL_StatusTypeDef lepton_radiometry(bool rad_enabled);
  * @return The result of the vsync mode set operation
  */
 HAL_StatusTypeDef lepton_vsync(bool vsync_enabled);
+
+/**
+ * @fn HAL_StatusTypeDef lepton_version()
+ * @brief
+ *
+ * @return
+ */
+HAL_StatusTypeDef lepton_version();
 
 /**
  * @fn void send_byte(uint8_t)

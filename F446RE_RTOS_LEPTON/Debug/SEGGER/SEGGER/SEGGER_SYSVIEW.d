@@ -7,7 +7,7 @@ SEGGER/SEGGER/SEGGER_SYSVIEW.o: ../SEGGER/SEGGER/SEGGER_SYSVIEW.c \
  /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_RTT_Conf.h \
  ../SEGGER/SEGGER/SEGGER_RTT.h \
  ../SEGGER/SEGGER/../Config/SEGGER_RTT_Conf.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
+ /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/CMSIS_RTOS_V2/cmsis_os2.h
 ../SEGGER/SEGGER/SEGGER_SYSVIEW_Int.h:
 ../SEGGER/SEGGER/SEGGER_SYSVIEW.h:
 ../SEGGER/SEGGER/SEGGER.h:
@@ -17,4 +17,4 @@ SEGGER/SEGGER/SEGGER_SYSVIEW.o: ../SEGGER/SEGGER/SEGGER_SYSVIEW.c \
 /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_RTT_Conf.h:
 ../SEGGER/SEGGER/SEGGER_RTT.h:
 ../SEGGER/SEGGER/../Config/SEGGER_RTT_Conf.h:
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/CMSIS_RTOS_V2/cmsis_os2.h:

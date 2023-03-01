@@ -67,10 +67,10 @@ void Error_Handler(void);
 #define FLIR_VSYNC_Pin GPIO_PIN_12
 #define FLIR_VSYNC_GPIO_Port GPIOB
 #define FLIR_VSYNC_EXTI_IRQn EXTI15_10_IRQn
-#define FLIR_PWR_DWN_L_Pin GPIO_PIN_11
-#define FLIR_PWR_DWN_L_GPIO_Port GPIOA
-#define FLIR_RESET_L_Pin GPIO_PIN_12
-#define FLIR_RESET_L_GPIO_Port GPIOA
+#define FLIR_PWR_DWN_L_Pin GPIO_PIN_6
+#define FLIR_PWR_DWN_L_GPIO_Port GPIOC
+#define FLIR_RESET_L_Pin GPIO_PIN_8
+#define FLIR_RESET_L_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
