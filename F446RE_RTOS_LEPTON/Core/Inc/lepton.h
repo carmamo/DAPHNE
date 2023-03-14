@@ -49,6 +49,7 @@ extern "C" {
  * @brief Height of a single frame in pixels.
  *
  */
+#define FRAME_HEIGHT		(60)
 #define FRAME_HEIGHT_2_5	(60)
 
 #define FRAME_HEIGHT_3_5	(120)
@@ -57,6 +58,7 @@ extern "C" {
  * @brief Width of a single frame in pixels.
  *
  */
+#define FRAME_WIDTH			(80)
 #define FRAME_WIDTH_2_5		(80)
 
 #define FRAME_WIDTH_3_5		(160)

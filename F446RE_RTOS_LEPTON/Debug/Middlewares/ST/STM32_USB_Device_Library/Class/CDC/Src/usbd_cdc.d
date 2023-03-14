@@ -41,25 +41,7 @@ Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.o: \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h \
- ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/CMSIS_RTOS_V2/cmsis_os.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/FreeRTOS.h \
- ../Core/Inc/FreeRTOSConfig.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/OS/SEGGER_SYSVIEW_FreeRTOS.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/Global.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW_ConfDefaults.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_SYSVIEW_Conf.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_RTT_Conf.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/projdefs.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/portable.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/deprecated_definitions.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/portable/GCC/ARM_CM4F/portmacro.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/mpu_wrappers.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/task.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/list.h \
- /home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/CMSIS_RTOS_V2/cmsis_os2.h
+ ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h
 ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h:
@@ -103,21 +85,3 @@ Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.o: \
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/CMSIS_RTOS_V2/cmsis_os.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/FreeRTOS.h:
-../Core/Inc/FreeRTOSConfig.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/OS/SEGGER_SYSVIEW_FreeRTOS.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/Global.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/SEGGER/SEGGER_SYSVIEW_ConfDefaults.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_SYSVIEW_Conf.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/SEGGER/Config/SEGGER_RTT_Conf.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/projdefs.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/portable.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/deprecated_definitions.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/portable/GCC/ARM_CM4F/portmacro.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/mpu_wrappers.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/task.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/include/list.h:
-/home/carlos/STM32CubeIDE/workspace_1.9.0/F446RE_RTOS_LEPTON/Middlewares/Third_Party/FreeRTOS/org/Source/CMSIS_RTOS_V2/cmsis_os2.h:
